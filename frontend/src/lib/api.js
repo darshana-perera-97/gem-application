@@ -1,4 +1,9 @@
-export const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:1324";
+// Empty REACT_APP_API_URL = same-origin (when the API serves the frontend build).
+const rawApiBase = process.env.REACT_APP_API_URL;
+export const API_BASE =
+  rawApiBase === undefined || rawApiBase === null
+    ? "http://localhost:1324"
+    : String(rawApiBase).trim().replace(/\/$/, "");
 
 export const SERVER_DOWN_MESSAGE = "The server is currently unavailable. Please contact the system administrator.";
 

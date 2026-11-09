@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "build:frontend": "npm --prefix ../frontend run build",
+    "start:app": "npm run build:frontend && node server.js",
     "db:init": "node src/initDatabase.js",
     "db:seed": "node src/catalog.js"
   },

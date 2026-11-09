@@ -1,0 +1,15 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /seed
+Disallow: /messages
+Disallow: /login
+Disallow: /auth/
+Disallow: /profile
+Disallow: /my-gems
+Disallow: /add-listing
+Disallow: /vendor/dashboard
+Disallow: /*/edit
+
+Sitemap: http://localhost:3000/sitemap.xml

@@ -2,6 +2,7 @@ const express = require("express");
 const { getDb } = require("./db");
 const { seedCatalog, serialize } = require("./catalog");
 const { publishedFilter } = require("./admin");
+const { getPublicBaseUrl } = require("./publicUrl");
 
 const router = express.Router();
 
@@ -825,7 +826,7 @@ router.post("/seed", asyncRoute(async (req, res) => {
 
 router.get("/sitemap.xml", asyncRoute(async (req, res) => {
   const database = getDb();
-  const site = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
+  const site = getPublicBaseUrl(req);
   const staticRoutes = [
     { loc: "/", priority: "1.0", changefreq: "daily" },
     { loc: "/marketplace", priority: "0.9", changefreq: "hourly" },

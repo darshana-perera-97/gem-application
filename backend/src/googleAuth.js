@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const express = require("express");
 const { getDb } = require("./db");
 const { serialize } = require("./catalog");
+const { getPublicBaseUrl } = require("./publicUrl");
 
 const router = express.Router();
 
@@ -9,8 +10,8 @@ const SESSION_COOKIE = "gem_session";
 const STATE_COOKIE = "gem_oauth_state";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 14;
 
-function frontendUrl() {
-  return (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
+function frontendUrl(req) {
+  return getPublicBaseUrl(req);
 }
 
 function callbackUrl() {
@@ -117,8 +118,8 @@ function endSession(res) {
   clearCookie(res, SESSION_COOKIE);
 }
 
-function redirectToLogin(res, error) {
-  res.redirect(`${frontendUrl()}/login?error=${encodeURIComponent(error)}`);
+function redirectToLogin(req, res, error) {
+  res.redirect(`${frontendUrl(req)}/login?error=${encodeURIComponent(error)}`);
 }
 
 function googlePhotoUrl(url) {
@@ -233,7 +234,7 @@ function asyncRoute(handler) {
     Promise.resolve(handler(req, res)).catch((error) => {
       console.error("Google sign-in failed:", error.message);
       if (!res.headersSent) {
-        redirectToLogin(res, "google_failed");
+        redirectToLogin(req, res, "google_failed");
       }
     });
   };
@@ -241,7 +242,7 @@ function asyncRoute(handler) {
 
 router.get("/auth/google", (req, res) => {
   if (!googleAuthConfigured()) {
-    redirectToLogin(res, "google_not_configured");
+    redirectToLogin(req, res, "google_not_configured");
     return;
   }
 
@@ -260,7 +261,7 @@ router.get("/auth/google", (req, res) => {
 
 router.get("/auth/google/callback", asyncRoute(async (req, res) => {
   if (!googleAuthConfigured()) {
-    redirectToLogin(res, "google_not_configured");
+    redirectToLogin(req, res, "google_not_configured");
     return;
   }
 
@@ -268,12 +269,12 @@ router.get("/auth/google/callback", asyncRoute(async (req, res) => {
   clearCookie(res, STATE_COOKIE);
 
   if (req.query.error) {
-    redirectToLogin(res, req.query.error === "access_denied" ? "access_denied" : "google_failed");
+    redirectToLogin(req, res, req.query.error === "access_denied" ? "access_denied" : "google_failed");
     return;
   }
 
   if (!req.query.code || !req.query.state || req.query.state !== cookies[STATE_COOKIE]) {
-    redirectToLogin(res, "google_failed");
+    redirectToLogin(req, res, "google_failed");
     return;
   }
 
@@ -282,7 +283,7 @@ router.get("/auth/google/callback", asyncRoute(async (req, res) => {
   const user = await upsertGoogleUser(profile);
   startSession(res, user.uid);
 
-  const target = new URL("/auth/callback", `${frontendUrl()}/`);
+  const target = new URL("/auth/callback", `${frontendUrl(req)}/`);
   if (tokens.id_token) {
     target.hash = new URLSearchParams({ id_token: tokens.id_token }).toString();
   }
