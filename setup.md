@@ -61,7 +61,7 @@ SMTP_PASS=
 SMTP_FROM=
 ```
 
-Sign in with Google uses the Firebase project in `frontend/src/firebase-applet-config.json`. `FIREBASE_PROJECT_ID` lets the API check that sign-in. `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are only needed for the optional redirect flow, with `GOOGLE_CALLBACK_URL` registered on that OAuth client. Email sign-in sends a 6-digit code through the `SMTP_*` account. Platform admin sign-in at [http://localhost:3000/admin](http://localhost:3000/admin) uses `ADMIN_USERNAME` and `ADMIN_PASSWORD` from this file (not stored in MongoDB). Restart the API after saving values in this file. Phone sign-in still uses Firebase.
+Sign in with Google uses the Firebase project configured in `frontend/.env` (`REACT_APP_FIREBASE_*`). `FIREBASE_PROJECT_ID` lets the API check that sign-in. `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are only needed for the optional redirect flow, with `GOOGLE_CALLBACK_URL` registered on that OAuth client. Email sign-in sends a 6-digit code through the `SMTP_*` account. Platform admin sign-in at [http://localhost:3000/admin](http://localhost:3000/admin) uses `ADMIN_USERNAME` and `ADMIN_PASSWORD` from this file (not stored in MongoDB). Restart the API after saving values in this file. Phone sign-in still uses Firebase.
 
 On startup the API connects to MongoDB, creates collections and indexes, and seeds the catalog if it is empty. You should see:
 
@@ -100,15 +100,23 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000).
 
-The frontend calls `http://localhost:1324` by default. To point it at another API, create `frontend/.env` (also gitignored) with:
+The frontend calls `http://localhost:1324` by default. Create `frontend/.env` (gitignored) from `frontend/.env.example`:
 
 ```
 REACT_APP_API_URL=http://localhost:1324
+REACT_APP_FIREBASE_PROJECT_ID=
+REACT_APP_FIREBASE_APP_ID=
+REACT_APP_FIREBASE_API_KEY=
+REACT_APP_FIREBASE_AUTH_DOMAIN=
+REACT_APP_FIREBASE_FIRESTORE_DATABASE_ID=
+REACT_APP_FIREBASE_STORAGE_BUCKET=
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=
+REACT_APP_FIREBASE_MEASUREMENT_ID=
 ```
 
-Restart `npm start` after changing that file. Create React App only reads `REACT_APP_*` variables.
+Copy values from Firebase Console → Project settings → Your apps. Restrict the browser API key by HTTP referrer in Google Cloud Console. Restart `npm start` after changing `.env`. Create React App only reads `REACT_APP_*` variables.
 
-Auth and Firestore use the config in `frontend/src/firebase-applet-config.json`.
+`frontend/src/firebase-applet-config.json` is a placeholder only; the app reads Firebase settings from env via `frontend/src/lib/firebaseConfig.js`.
 
 Other scripts, from `frontend/`:
 

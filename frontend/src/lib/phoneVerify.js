@@ -1,6 +1,6 @@
 import { getApp, initializeApp } from 'firebase/app';
 import { getAuth, inMemoryPersistence, RecaptchaVerifier, setPersistence, signInWithPhoneNumber, signOut } from 'firebase/auth';
-import firebaseConfig from '../firebase-applet-config.json';
+import firebaseConfig from './firebaseConfig';
 
 let ready;
 let verifier;

@@ -92,14 +92,10 @@ function stripTypeScript(content, isJsx) {
 
 `);
 
-  // Fix firebase config import path
+  // Point Firebase imports at the env-based config module
   result = result.replace(
-    "from '../../firebase-applet-config.json'",
-    "from '../firebase-applet-config.json'"
-  );
-  result = result.replace(
-    "from '../../../firebase-applet-config.json'",
-    "from '../../firebase-applet-config.json'"
+    /from ['"][^'"]*firebase-applet-config\.json['"]/g,
+    "from './firebaseConfig'"
   );
 
   // Fix image paths for CRA public folder
