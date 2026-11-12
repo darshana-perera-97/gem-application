@@ -382,8 +382,10 @@ async function findOwnedListing(database, listingId, userId) {
 function listingFieldsFromBody(body, images) {
   const gemType = body.gemType || "Sapphire";
   const status = String(body.status || "ACTIVE").toUpperCase() === "SOLD" ? "SOLD" : "ACTIVE";
+  const saleType = String(body.saleType || "single").toLowerCase() === "lot" ? "lot" : "single";
   return {
     title: String(body.title || "").trim(),
+    saleType,
     gemType,
     variety: gemType,
     type: gemType,
@@ -405,13 +407,18 @@ function listingFieldsFromBody(body, images) {
   };
 }
 
+function listingTitleFromBody(body) {
+  const explicit = String(body.title || "").trim();
+  if (explicit) return explicit;
+  const gemType = String(body.gemType || "Sapphire").trim() || "Sapphire";
+  const weight = Number(body.caratWeight);
+  const weightLabel = Number.isFinite(weight) && weight > 0 ? `${weight}ct ` : "";
+  return `${weightLabel}${gemType}`.trim();
+}
+
 router.post("/listings", asyncRoute(async (req, res) => {
   const userId = requireUserId(req.body);
-  const title = String(req.body.title || "").trim();
-  if (!title) {
-    res.status(400).json({ error: "A listing title is required" });
-    return;
-  }
+  const title = listingTitleFromBody(req.body);
   const images = normalizeListingImages(req.body.images);
   const database = getDb();
   const user = await requireVerifiedPhone(database, userId);
@@ -452,11 +459,7 @@ router.post("/listings", asyncRoute(async (req, res) => {
 
 router.post("/listings/:id", asyncRoute(async (req, res) => {
   const userId = requireUserId(req.body);
-  const title = String(req.body.title || "").trim();
-  if (!title) {
-    res.status(400).json({ error: "A listing title is required" });
-    return;
-  }
+  const title = listingTitleFromBody(req.body);
   const images = normalizeListingImages(req.body.images);
   const database = getDb();
   await requireVerifiedPhone(database, userId);

@@ -36,7 +36,7 @@ export function AddListingModal({ open, listingId = null, onClose, onSuccess }) 
             <p id="add-listing-title" className="text-sm font-black text-slate-900 tracking-tight">
               {listingId ? 'Edit gem listing' : 'List a new gem'}
             </p>
-            <p className="text-[11px] text-slate-400 font-medium">Fill in the details and publish to your collection.</p>
+            <p className="text-[11px] text-slate-400 font-medium">One detail at a time — then publish to your collection.</p>
           </div>
           <button
             type="button"

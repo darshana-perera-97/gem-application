@@ -1,42 +1,139 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ChevronDown, ImagePlus, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gem, ImagePlus, Layers, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { apiGet, apiPost } from '../../lib/api';
 import { emitCatalogChange } from '../../lib/catalogEvents';
 import { hasVerifiedPhone } from '../../lib/phone';
 import { LoadingImage } from '../ui/LoadingImage';
 
-const GEM_TYPES = [
-  'Sapphire', 'Ruby', 'Emerald', 'Spinel', 'Diamond',
-  'Alexandrite', 'Tourmaline', 'Aquamarine', 'Tanzanite', 'Other',
+const SALE_TYPE_OPTIONS = [
+  { id: 'single', label: 'Single Gem', Icon: Gem },
+  { id: 'lot', label: 'Gem Lot', Icon: Layers },
 ];
 
-const CUT_OPTIONS = ['Oval', 'Cushion', 'Round', 'Pear', 'Emerald Cut', 'Marquise', 'Cabochon', 'Other'];
+const GEM_TYPES = [
+  'Sapphire', 'Ruby', 'Emerald', 'Spinel', 'Diamond',
+  'Alexandrite', 'Tourmaline', 'Aquamarine', 'Tanzanite',
+];
+
+const WEIGHT_OPTIONS = [
+  { value: '0.5', label: '0.5 ct' },
+  { value: '1', label: '1 ct' },
+  { value: '1.5', label: '1.5 ct' },
+  { value: '2', label: '2 ct' },
+  { value: '3', label: '3 ct' },
+  { value: '5', label: '5 ct' },
+  { value: '10', label: '10 ct' },
+];
+
+const PRICE_OPTIONS = [
+  { value: '50000', label: '50K' },
+  { value: '100000', label: '100K' },
+  { value: '250000', label: '250K' },
+  { value: '500000', label: '500K' },
+  { value: '1000000', label: '1M' },
+  { value: '2500000', label: '2.5M' },
+  { value: '5000000', label: '5M' },
+];
+
+const CUT_OPTIONS = ['Oval', 'Cushion', 'Round', 'Pear', 'Emerald Cut', 'Marquise', 'Cabochon'];
 const CLARITY_OPTIONS = ['Eye Clean', 'Loupe Clean', 'Slightly Included', 'Moderately Included', 'Heavily Included'];
 const TREATMENT_OPTIONS = ['Unheated', 'Heated', 'Unknown'];
 const CERTIFICATION_OPTIONS = ['None', 'GIA', 'GRS', 'GIC', 'Local Lab'];
-const ORIGIN_OPTIONS = ['Sri Lanka', 'Madagascar', 'Myanmar', 'Thailand', 'Mozambique', 'Tanzania', 'Other'];
-const SHAPE_OPTIONS = ['Oval', 'Cushion', 'Round', 'Pear', 'Emerald', 'Marquise', 'Trilliant', 'Princess', 'Heart', 'Other'];
+const ORIGIN_OPTIONS = ['Sri Lanka', 'Madagascar', 'Myanmar', 'Thailand', 'Mozambique', 'Tanzania'];
+const SHAPE_OPTIONS = ['Oval', 'Cushion', 'Round', 'Pear', 'Emerald', 'Marquise', 'Trilliant', 'Princess', 'Heart'];
+const STATUS_OPTIONS = [
+  { value: 'ACTIVE', label: 'Available' },
+  { value: 'SOLD', label: 'Sold' },
+];
 
 const MIN_IMAGES = 1;
 const MAX_IMAGES = 5;
 const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
 
-function readAsDataUrl(file) {
+const FIELD_CLASS =
+  'w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none';
+
+function readAsDataUrl(file, onProgress) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onprogress = (event) => {
+      if (!event.lengthComputable || typeof onProgress !== 'function') return;
+      onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+    };
+    reader.onload = () => {
+      onProgress?.(100);
+      resolve(String(reader.result || ''));
+    };
     reader.onerror = () => reject(new Error('Could not read that file'));
     reader.readAsDataURL(file);
   });
 }
 
-function optionOrFallback(options, value) {
-  const next = String(value || '').trim();
-  if (!next) return '';
-  return options.includes(next) ? next : options[options.length - 1];
+function normalizeOptions(options) {
+  return options.map((option) => (
+    typeof option === 'string'
+      ? { value: option, label: option }
+      : option
+  ));
+}
+
+function ChoiceStep({
+  options,
+  value,
+  onSelect,
+  onCustomChange,
+  allowCustom = false,
+  customPlaceholder = 'Enter a value…',
+  customInputType = 'text',
+  customStep,
+}) {
+  const items = normalizeOptions(options);
+  const stringValue = value == null ? '' : String(value);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-3">
+        {items.map((option) => {
+          const selected = stringValue === String(option.value);
+          return (
+            <button
+              key={String(option.value)}
+              type="button"
+              onClick={() => onSelect(option.value)}
+              className={cn(
+                'px-8 py-4 rounded-2xl text-base font-bold transition-all border-2',
+                selected
+                  ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-105'
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-800'
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {allowCustom && (
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Or enter another value
+          </p>
+          <input
+            type={customInputType}
+            step={customStep}
+            min={customInputType === 'number' ? '0' : undefined}
+            value={stringValue}
+            onChange={(event) => onCustomChange?.(event.target.value)}
+            placeholder={customPlaceholder}
+            className={FIELD_CLASS}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function AddListingForm({
@@ -51,22 +148,47 @@ export function AddListingForm({
   const fileRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [loadingListing, setLoadingListing] = useState(isEditing);
-  const [selectedGemType, setSelectedGemType] = useState('Sapphire');
+  const [stepIndex, setStepIndex] = useState(0);
+  const [saleType, setSaleType] = useState('');
+  const [selectedGemType, setSelectedGemType] = useState('');
   const [images, setImages] = useState([]);
+  const [imageUpload, setImageUpload] = useState(null);
   const [status, setStatus] = useState('ACTIVE');
   const [form, setForm] = useState({
-    title: '',
     weight: '',
     price: '',
     cut: '',
     clarity: '',
     treatment: '',
     certification: '',
-    origin: 'Sri Lanka',
+    origin: '',
     shape: '',
-    dimensions: '',
-    description: '',
   });
+
+  const steps = useMemo(() => {
+    const base = [
+      { id: 'saleType', label: 'What are you selling?', hint: 'Choose a single gem or a gem lot.' },
+      { id: 'gemType', label: 'Gem Type', hint: 'What kind of stone are you listing?' },
+      { id: 'weight', label: 'Carat Weight', hint: 'Enter the carat weight of the gem.' },
+      { id: 'price', label: 'Price (LKR)', hint: 'Set your asking price in Sri Lankan Rupees.' },
+      { id: 'cut', label: 'Cut', hint: 'Choose the cut of the stone.' },
+      { id: 'clarity', label: 'Clarity', hint: 'How clean is the stone?' },
+      { id: 'treatment', label: 'Treatment', hint: 'Has the stone been treated?' },
+      { id: 'certification', label: 'Certification', hint: 'Any lab certification?' },
+      { id: 'origin', label: 'Origin', hint: 'Where is the stone from?' },
+      { id: 'shape', label: 'Shape', hint: 'Select the shape of the gem.' },
+    ];
+    if (isEditing) {
+      base.push({ id: 'status', label: 'Listing Status', hint: 'Is this gem still available?' });
+    }
+    base.push({ id: 'photos', label: 'Photos', hint: 'Add 1 to 5 clear photos. First image is the cover.' });
+    return base;
+  }, [isEditing]);
+
+  const currentStep = steps[stepIndex] || steps[0];
+  const isFirstStep = stepIndex === 0;
+  const isLastStep = stepIndex === steps.length - 1;
+  const progress = ((stepIndex + 1) / steps.length) * 100;
 
   useEffect(() => {
     if (!isEditing) {
@@ -98,23 +220,23 @@ export function AddListingForm({
           onCancel?.();
           return;
         }
-        const gemType = listing.gemType || listing.variety || listing.type || 'Sapphire';
-        setSelectedGemType(GEM_TYPES.includes(gemType) ? gemType : 'Other');
+        const gemType = String(listing.gemType || listing.variety || listing.type || '').trim();
+        const nextSaleType = listing.saleType === 'lot' ? 'lot' : 'single';
+        setSaleType(nextSaleType);
+        setSelectedGemType(gemType);
         setImages(Array.isArray(listing.images) ? listing.images.filter(Boolean) : []);
         setStatus(listing.status === 'SOLD' ? 'SOLD' : 'ACTIVE');
         setForm({
-          title: listing.title || '',
           weight: listing.caratWeight ?? listing.weight ?? '',
           price: listing.price ?? '',
-          cut: optionOrFallback(CUT_OPTIONS, listing.cut),
-          clarity: optionOrFallback(CLARITY_OPTIONS, listing.clarity),
-          treatment: optionOrFallback(TREATMENT_OPTIONS, listing.treatment),
-          certification: optionOrFallback(CERTIFICATION_OPTIONS, listing.certification),
-          origin: optionOrFallback(ORIGIN_OPTIONS, listing.origin),
-          shape: optionOrFallback(SHAPE_OPTIONS, listing.shape),
-          dimensions: listing.dimensions || '',
-          description: listing.description || '',
+          cut: String(listing.cut || '').trim(),
+          clarity: String(listing.clarity || '').trim(),
+          treatment: String(listing.treatment || '').trim(),
+          certification: String(listing.certification || '').trim(),
+          origin: String(listing.origin || '').trim(),
+          shape: String(listing.shape || '').trim(),
         });
+        setStepIndex(0);
       })
       .catch((error) => {
         console.error(error);
@@ -138,7 +260,7 @@ export function AddListingForm({
   const handleImages = async (event) => {
     const files = Array.from(event.target.files || []);
     event.target.value = '';
-    if (!files.length) return;
+    if (!files.length || imageUpload) return;
 
     const remaining = MAX_IMAGES - images.length;
     if (remaining <= 0) {
@@ -151,24 +273,68 @@ export function AddListingForm({
       alert(`Only ${remaining} more image${remaining === 1 ? '' : 's'} can be added (max ${MAX_IMAGES}).`);
     }
 
+    const validFiles = [];
+    for (const file of selected) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please choose image files only.');
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        alert(`"${file.name}" is too large. Keep each photo under 1.5MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+    if (!validFiles.length) return;
+
+    const totalBytes = validFiles.reduce((sum, file) => sum + file.size, 0) || 1;
+    let loadedBytes = 0;
+
+    setImageUpload({
+      progress: 0,
+      current: 1,
+      total: validFiles.length,
+      fileName: validFiles[0].name,
+    });
+
     try {
       const next = [];
-      for (const file of selected) {
-        if (!file.type.startsWith('image/')) {
-          alert('Please choose image files only.');
-          continue;
-        }
-        if (file.size > MAX_IMAGE_BYTES) {
-          alert(`"${file.name}" is too large. Keep each photo under 1.5MB.`);
-          continue;
-        }
-        next.push(await readAsDataUrl(file));
+      for (let index = 0; index < validFiles.length; index += 1) {
+        const file = validFiles[index];
+        const baseLoaded = loadedBytes;
+        setImageUpload({
+          progress: Math.min(99, Math.round((baseLoaded / totalBytes) * 100)),
+          current: index + 1,
+          total: validFiles.length,
+          fileName: file.name,
+        });
+
+        const dataUrl = await readAsDataUrl(file, (fileProgress) => {
+          const overall = baseLoaded + (file.size * (fileProgress / 100));
+          setImageUpload({
+            progress: Math.min(99, Math.round((overall / totalBytes) * 100)),
+            current: index + 1,
+            total: validFiles.length,
+            fileName: file.name,
+          });
+        });
+        loadedBytes += file.size;
+        next.push(dataUrl);
       }
+
       if (next.length) {
         setImages((current) => [...current, ...next].slice(0, MAX_IMAGES));
       }
+      setImageUpload({
+        progress: 100,
+        current: validFiles.length,
+        total: validFiles.length,
+        fileName: validFiles[validFiles.length - 1]?.name || '',
+      });
+      window.setTimeout(() => setImageUpload(null), 350);
     } catch (error) {
       console.error(error);
+      setImageUpload(null);
       alert('Could not read one of those images. Try again.');
     }
   };
@@ -177,8 +343,110 @@ export function AddListingForm({
     setImages((current) => current.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const validateStep = (stepId) => {
+    switch (stepId) {
+      case 'saleType':
+        if (!saleType) {
+          alert('Choose whether you are selling a single gem or a gem lot.');
+          return false;
+        }
+        return true;
+      case 'gemType':
+        if (!String(selectedGemType || '').trim()) {
+          alert('Select or enter a gem type.');
+          return false;
+        }
+        return true;
+      case 'weight': {
+        const weight = Number(form.weight);
+        if (!form.weight || !Number.isFinite(weight) || weight <= 0) {
+          alert('Enter a valid carat weight.');
+          return false;
+        }
+        return true;
+      }
+      case 'price': {
+        const price = Number(form.price);
+        if (!form.price || !Number.isFinite(price) || price <= 0) {
+          alert('Enter a valid price.');
+          return false;
+        }
+        return true;
+      }
+      case 'cut':
+        if (!form.cut) {
+          alert('Select a cut.');
+          return false;
+        }
+        return true;
+      case 'clarity':
+        if (!form.clarity) {
+          alert('Select a clarity grade.');
+          return false;
+        }
+        return true;
+      case 'treatment':
+        if (!form.treatment) {
+          alert('Select a treatment.');
+          return false;
+        }
+        return true;
+      case 'certification':
+        if (!form.certification) {
+          alert('Select a certification.');
+          return false;
+        }
+        return true;
+      case 'origin':
+        if (!form.origin) {
+          alert('Select an origin.');
+          return false;
+        }
+        return true;
+      case 'shape':
+        if (!form.shape) {
+          alert('Select a shape.');
+          return false;
+        }
+        return true;
+      case 'status':
+        return true;
+      case 'photos':
+        if (images.length < MIN_IMAGES) {
+          alert(`Add at least ${MIN_IMAGES} image of your gem.`);
+          return false;
+        }
+        if (images.length > MAX_IMAGES) {
+          alert(`You can upload a maximum of ${MAX_IMAGES} images.`);
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const goNext = () => {
+    if (!validateStep(currentStep.id)) return;
+    if (!isLastStep) setStepIndex((current) => Math.min(current + 1, steps.length - 1));
+  };
+
+  const selectAndAdvance = (applySelection) => {
+    applySelection();
+    if (!isLastStep) {
+      setStepIndex((current) => Math.min(current + 1, steps.length - 1));
+    }
+  };
+
+  const goBack = () => {
+    if (isFirstStep) {
+      onCancel?.();
+      return;
+    }
+    setStepIndex((current) => Math.max(current - 1, 0));
+  };
+
+  const saveListing = async () => {
     if (!userProfile) {
       navigate('/login');
       return;
@@ -188,20 +456,20 @@ export function AddListingForm({
       navigate('/profile?tab=settings');
       return;
     }
-    if (images.length < MIN_IMAGES) {
-      alert(`Add at least ${MIN_IMAGES} image of your gem.`);
-      return;
-    }
-    if (images.length > MAX_IMAGES) {
-      alert(`You can upload a maximum of ${MAX_IMAGES} images.`);
-      return;
-    }
+    if (!validateStep('photos')) return;
+
     setLoading(true);
+
+    const gemType = String(selectedGemType || '').trim() || 'Sapphire';
+    const weightLabel = form.weight ? `${form.weight}ct ` : '';
+    const lotLabel = saleType === 'lot' ? ' Lot' : '';
+    const title = `${weightLabel}${gemType}${lotLabel}`.trim();
 
     const payload = {
       userId: userProfile.uid,
-      title: form.title,
-      gemType: selectedGemType,
+      title,
+      saleType: saleType === 'lot' ? 'lot' : 'single',
+      gemType,
       caratWeight: Number(form.weight),
       price: Number(form.price),
       currency: 'LKR',
@@ -211,8 +479,8 @@ export function AddListingForm({
       certification: form.certification,
       origin: form.origin,
       shape: form.shape,
-      dimensions: form.dimensions,
-      description: form.description,
+      dimensions: '',
+      description: '',
       images,
       status,
     };
@@ -233,6 +501,15 @@ export function AddListingForm({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!isLastStep) {
+      goNext();
+      return;
+    }
+    await saveListing();
   };
 
   if (loadingListing) {
@@ -257,294 +534,274 @@ export function AddListingForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className={cn('space-y-7', compact ? 'px-1 pb-2' : 'p-8')}>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Listing Title</label>
-          <input
-            name="title"
-            type="text"
-            value={form.title}
-            onChange={(event) => updateField('title', event.target.value)}
-            placeholder="e.g. Natural Unheated Ceylon Blue Sapphire"
-            className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-            required
-          />
-        </div>
-
-        <div className="space-y-3">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Gem Type</label>
-          <div className="flex flex-wrap gap-2">
-            {GEM_TYPES.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setSelectedGemType(type)}
-                className={cn(
-                  'px-4 py-2 rounded-full text-xs font-bold transition-all border',
-                  selectedGemType === type
-                    ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-105'
-                    : 'bg-white border-slate-100 text-slate-500 hover:border-slate-300'
-                )}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Carat Weight</label>
-            <input
-              name="weight"
-              type="number"
-              step="0.01"
-              value={form.weight}
-              onChange={(event) => updateField('weight', event.target.value)}
-              placeholder="e.g. 2.5"
-              className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Price (LKR)</label>
-            <input
-              name="price"
-              type="number"
-              value={form.price}
-              onChange={(event) => updateField('price', event.target.value)}
-              placeholder="e.g. 1500"
-              className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Cut</label>
-            <div className="relative">
-              <select
-                name="cut"
-                value={form.cut}
-                onChange={(event) => updateField('cut', event.target.value)}
-                className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-                required
-              >
-                <option value="" disabled>Select cut</option>
-                {CUT_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Clarity</label>
-            <div className="relative">
-              <select
-                name="clarity"
-                value={form.clarity}
-                onChange={(event) => updateField('clarity', event.target.value)}
-                className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-                required
-              >
-                <option value="" disabled>Select clarity</option>
-                {CLARITY_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Treatment</label>
-            <div className="relative">
-              <select
-                name="treatment"
-                value={form.treatment}
-                onChange={(event) => updateField('treatment', event.target.value)}
-                className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-                required
-              >
-                <option value="" disabled>Select</option>
-                {TREATMENT_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Certification</label>
-            <div className="relative">
-              <select
-                name="certification"
-                value={form.certification}
-                onChange={(event) => updateField('certification', event.target.value)}
-                className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-                required
-              >
-                <option value="" disabled>Select</option>
-                {CERTIFICATION_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Origin</label>
-            <div className="relative">
-              <select
-                name="origin"
-                value={form.origin}
-                onChange={(event) => updateField('origin', event.target.value)}
-                className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-              >
-                <option value="" disabled>Select origin</option>
-                {ORIGIN_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Shape</label>
-            <div className="relative">
-              <select
-                name="shape"
-                value={form.shape}
-                onChange={(event) => updateField('shape', event.target.value)}
-                className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-              >
-                <option value="" disabled>Select shape</option>
-                {SHAPE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Dimensions (L x W x D mm)</label>
-          <input
-            name="dimensions"
-            type="text"
-            value={form.dimensions}
-            onChange={(event) => updateField('dimensions', event.target.value)}
-            placeholder="e.g. 10.5 x 8.2 x 5.1"
-            className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Description</label>
-          <textarea
-            name="description"
-            rows={4}
-            value={form.description}
-            onChange={(event) => updateField('description', event.target.value)}
-            placeholder="Additional details, condition notes..."
-            className="w-full p-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none resize-none"
-          />
-        </div>
-
-        {isEditing && (
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Listing Status</label>
-            <div className="relative">
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all outline-none"
-              >
-                <option value="ACTIVE">Available</option>
-                <option value="SOLD">Sold</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-            </div>
-          </div>
-        )}
-
+      <form onSubmit={handleSubmit} className={cn('space-y-6', compact ? 'px-1 pb-2' : 'p-8')}>
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Photos</label>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              {images.length}/{MAX_IMAGES} · min {MIN_IMAGES}
-            </span>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Step {stepIndex + 1} of {steps.length}
+            </p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              {currentStep.label}
+            </p>
           </div>
-
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleImages}
-          />
-
-          <div className="grid grid-cols-3 gap-3">
-            {images.map((src, index) => (
-              <div
-                key={`${index}-${src.slice(0, 32)}`}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-100"
-              >
-                <LoadingImage src={src} alt={`Gem photo ${index + 1}`} className="w-full h-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900 transition-colors"
-                  aria-label={`Remove photo ${index + 1}`}
-                >
-                  <X size={14} />
-                </button>
-                {index === 0 && (
-                  <span className="absolute bottom-2 left-2 text-[9px] font-black uppercase tracking-widest bg-white/90 text-slate-700 px-2 py-1 rounded-full">
-                    Cover
-                  </span>
-                )}
-              </div>
-            ))}
-
-            {images.length < MAX_IMAGES && (
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="aspect-square rounded-2xl border border-dashed border-slate-200 bg-slate-50 hover:bg-white hover:border-primary/40 text-slate-400 hover:text-primary transition-all flex flex-col items-center justify-center gap-2"
-              >
-                <ImagePlus size={22} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">
-                  {images.length ? 'Add' : 'Upload'}
-                </span>
-              </button>
-            )}
+          <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
           </div>
-
-          <p className="text-xs text-slate-400 font-medium">
-            Upload 1 to 5 clear photos. The first image is used as the cover.
-          </p>
         </div>
 
-        <div className={cn('flex gap-3 pt-2', compact ? 'flex-col-reverse sm:flex-row sm:justify-end' : '')}>
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-5 py-4 rounded-2xl font-bold text-sm text-slate-600 hover:bg-slate-100"
-            >
-              Cancel
-            </button>
+        <div className="min-h-[220px] flex flex-col justify-center space-y-4">
+          <div className="space-y-1">
+            <label className="text-lg font-black text-slate-900 tracking-tight block">
+              {currentStep.label}
+            </label>
+            <p className="text-sm text-slate-400 font-medium">{currentStep.hint}</p>
+          </div>
+
+          {currentStep.id === 'saleType' && (
+            <div className="grid grid-cols-2 gap-3">
+              {SALE_TYPE_OPTIONS.map(({ id, label, Icon }) => {
+                const selected = saleType === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => selectAndAdvance(() => setSaleType(id))}
+                    className={cn(
+                      'flex flex-col items-center justify-center gap-3 rounded-2xl border px-4 py-6 transition-all',
+                      selected
+                        ? 'border-primary bg-primary/5 text-primary shadow-md shadow-primary/15 scale-[1.02]'
+                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-white'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'w-12 h-12 rounded-2xl flex items-center justify-center',
+                        selected ? 'bg-primary text-white' : 'bg-white text-slate-400 border border-slate-100'
+                      )}
+                    >
+                      <Icon size={22} />
+                    </span>
+                    <span className="text-sm font-black tracking-tight">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
           )}
+
+          {currentStep.id === 'gemType' && (
+            <ChoiceStep
+              allowCustom
+              options={GEM_TYPES}
+              value={selectedGemType}
+              onSelect={(type) => selectAndAdvance(() => setSelectedGemType(type))}
+              onCustomChange={setSelectedGemType}
+              customPlaceholder="e.g. Padparadscha"
+            />
+          )}
+
+          {currentStep.id === 'weight' && (
+            <ChoiceStep
+              allowCustom
+              options={WEIGHT_OPTIONS}
+              value={form.weight}
+              onSelect={(weight) => selectAndAdvance(() => updateField('weight', weight))}
+              onCustomChange={(weight) => updateField('weight', weight)}
+              customPlaceholder="e.g. 2.75"
+              customInputType="number"
+              customStep="0.01"
+            />
+          )}
+
+          {currentStep.id === 'price' && (
+            <ChoiceStep
+              allowCustom
+              options={PRICE_OPTIONS}
+              value={form.price}
+              onSelect={(price) => selectAndAdvance(() => updateField('price', price))}
+              onCustomChange={(price) => updateField('price', price)}
+              customPlaceholder="e.g. 175000"
+              customInputType="number"
+            />
+          )}
+
+          {currentStep.id === 'cut' && (
+            <ChoiceStep
+              allowCustom
+              options={CUT_OPTIONS}
+              value={form.cut}
+              onSelect={(cut) => selectAndAdvance(() => updateField('cut', cut))}
+              onCustomChange={(cut) => updateField('cut', cut)}
+              customPlaceholder="e.g. Asscher"
+            />
+          )}
+
+          {currentStep.id === 'clarity' && (
+            <ChoiceStep
+              allowCustom
+              options={CLARITY_OPTIONS}
+              value={form.clarity}
+              onSelect={(clarity) => selectAndAdvance(() => updateField('clarity', clarity))}
+              onCustomChange={(clarity) => updateField('clarity', clarity)}
+              customPlaceholder="e.g. VS1"
+            />
+          )}
+
+          {currentStep.id === 'treatment' && (
+            <ChoiceStep
+              allowCustom
+              options={TREATMENT_OPTIONS}
+              value={form.treatment}
+              onSelect={(treatment) => selectAndAdvance(() => updateField('treatment', treatment))}
+              onCustomChange={(treatment) => updateField('treatment', treatment)}
+              customPlaceholder="e.g. Diffusion"
+            />
+          )}
+
+          {currentStep.id === 'certification' && (
+            <ChoiceStep
+              allowCustom
+              options={CERTIFICATION_OPTIONS}
+              value={form.certification}
+              onSelect={(certification) => selectAndAdvance(() => updateField('certification', certification))}
+              onCustomChange={(certification) => updateField('certification', certification)}
+              customPlaceholder="e.g. AGL"
+            />
+          )}
+
+          {currentStep.id === 'origin' && (
+            <ChoiceStep
+              allowCustom
+              options={ORIGIN_OPTIONS}
+              value={form.origin}
+              onSelect={(origin) => selectAndAdvance(() => updateField('origin', origin))}
+              onCustomChange={(origin) => updateField('origin', origin)}
+              customPlaceholder="e.g. Kashmir"
+            />
+          )}
+
+          {currentStep.id === 'shape' && (
+            <ChoiceStep
+              allowCustom
+              options={SHAPE_OPTIONS}
+              value={form.shape}
+              onSelect={(shape) => selectAndAdvance(() => updateField('shape', shape))}
+              onCustomChange={(shape) => updateField('shape', shape)}
+              customPlaceholder="e.g. Radiant"
+            />
+          )}
+
+          {currentStep.id === 'status' && (
+            <ChoiceStep
+              options={STATUS_OPTIONS}
+              value={status}
+              onSelect={(nextStatus) => selectAndAdvance(() => setStatus(nextStatus))}
+            />
+          )}
+
+          {currentStep.id === 'photos' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {images.length}/{MAX_IMAGES} · min {MIN_IMAGES}
+                </span>
+              </div>
+
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImages}
+                disabled={Boolean(imageUpload)}
+              />
+
+              {imageUpload && (
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-bold text-slate-600 truncate">
+                      Attaching {imageUpload.fileName || 'photo'}
+                      {imageUpload.total > 1 ? ` (${imageUpload.current}/${imageUpload.total})` : ''}
+                    </p>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary shrink-0">
+                      {imageUpload.progress}%
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-150 ease-out"
+                      style={{ width: `${imageUpload.progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
+                {images.map((src, index) => (
+                  <div
+                    key={`${index}-${src.slice(0, 32)}`}
+                    className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-100"
+                  >
+                    <LoadingImage src={src} alt={`Gem photo ${index + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      disabled={Boolean(imageUpload)}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900 transition-colors disabled:opacity-50"
+                      aria-label={`Remove photo ${index + 1}`}
+                    >
+                      <X size={14} />
+                    </button>
+                    {index === 0 && (
+                      <span className="absolute bottom-2 left-2 text-[9px] font-black uppercase tracking-widest bg-white/90 text-slate-700 px-2 py-1 rounded-full">
+                        Cover
+                      </span>
+                    )}
+                  </div>
+                ))}
+
+                {images.length < MAX_IMAGES && (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={Boolean(imageUpload)}
+                    className="aspect-square rounded-2xl border border-dashed border-slate-200 bg-slate-50 hover:bg-white hover:border-primary/40 text-slate-400 hover:text-primary transition-all flex flex-col items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    <ImagePlus size={22} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      {imageUpload ? 'Uploading' : images.length ? 'Add' : 'Upload'}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={goBack}
+            className="px-3 py-2 rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-100 inline-flex items-center gap-1.5"
+          >
+            <ArrowLeft size={14} />
+            {isFirstStep ? (onCancel ? 'Cancel' : 'Back') : 'Back'}
+          </button>
+
           <button
             type="submit"
-            disabled={loading || images.length < MIN_IMAGES}
-            className={cn(
-              'py-5 bg-primary text-white rounded-2xl font-black shadow-xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 text-lg disabled:opacity-50',
-              compact ? 'flex-1 px-6' : 'w-full mt-4'
-            )}
+            disabled={loading || (isLastStep && images.length < MIN_IMAGES)}
+            className="px-4 py-2.5 bg-primary text-white rounded-xl font-bold shadow-md shadow-primary/25 hover:shadow-primary/35 hover:-translate-y-0.5 active:translate-y-0 transition-all inline-flex items-center justify-center gap-1.5 text-sm disabled:opacity-50"
           >
-            {loading
-              ? (isEditing ? 'Saving...' : 'Publishing...')
-              : (isEditing ? 'Save Changes' : 'List Your Gem')}
-            {!loading && <ArrowRight size={22} />}
+            {isLastStep
+              ? (loading
+                ? (isEditing ? 'Saving...' : 'Publishing...')
+                : (isEditing ? 'Save Changes' : 'List Your Gem'))
+              : 'Continue'}
+            {!loading && <ArrowRight size={16} />}
           </button>
         </div>
       </form>

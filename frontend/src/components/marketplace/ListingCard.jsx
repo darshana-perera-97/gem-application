@@ -210,6 +210,21 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
     }
   };
 
+  const callHref = dealerPhone
+    ? `tel:${dealerPhone.replace(/[^\d+]/g, '')}`
+    : '';
+
+  const callAction = callHref ? (
+    <a
+      href={callHref}
+      aria-label={`Call ${dealerName || 'seller'}`}
+      onClick={(event) => event.stopPropagation()}
+      className="md:hidden text-slate-400 hover:text-primary transition-colors"
+    >
+      <Phone size={18} />
+    </a>
+  ) : null;
+
   if (isList) {
     return (
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group hover:shadow-xl hover:border-slate-300 transition-all duration-500">
@@ -340,6 +355,7 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">4.9 (24)</span>
                   </div>
                   <div className="flex items-center gap-3">
+                    {callAction}
                     <button type="button" onClick={handleMessage} className="text-slate-400 hover:text-primary transition-colors">
                       <MessageCircle size={18} />
                     </button>
@@ -510,6 +526,7 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">4.9 (24)</span>
               </div>
               <div className="flex items-center gap-3">
+                {callAction}
                 <button type="button" onClick={handleMessage} className="text-slate-400 hover:text-primary transition-colors">
                   <MessageCircle size={18} />
                 </button>
