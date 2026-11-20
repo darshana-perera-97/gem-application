@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { BadgeCheck, MapPin, Scale, Shield, MessageCircle, Share2, Info, ChevronRight, Award, Ruler, Sparkles, Play, Heart, Loader2, Pencil } from 'lucide-react';
+import { BadgeCheck, MapPin, Scale, Shield, MessageCircle, Share2, Info, ChevronRight, Award, Sparkles, Play, Heart, Loader2, Pencil } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';
 import { apiGet } from '../lib/api';
 import { db } from '../lib/firebase';
@@ -360,7 +360,6 @@ export const ProductPage = () => {
               <SpecItem icon={Sparkles} label="Clarity" value={listing.clarity} />
               <SpecItem icon={Award} label="Cut" value={listing.cut} />
               <SpecItem icon={Info} label="Treatment" value={listing.treatment} />
-              <SpecItem icon={Ruler} label="Shape" value={listing.shape} />
             </div>
           </div>
         </div>

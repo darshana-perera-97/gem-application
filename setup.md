@@ -132,3 +132,12 @@ Other scripts, from `frontend/`:
 **Frontend cannot load data** — The API must be running on port `1324`, or `REACT_APP_API_URL` must match wherever it is running.
 
 **Port already in use** — Something else is bound to `3000`, `1324`, or `27017`. Stop that process, or change `PORT` in `backend/.env` and set the same host in `REACT_APP_API_URL`.
+
+
+
+-------
+
+
+npm run db:start   # start
+npm run db:stop    # stop
+node server.js     # then start the API

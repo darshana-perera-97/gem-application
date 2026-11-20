@@ -28,11 +28,25 @@ const allowedOrigins = new Set([
   `http://127.0.0.1:${PORT}`,
 ]);
 
+function isLocalDevOrigin(origin) {
+  if (!origin) return true;
+  try {
+    const url = new URL(origin);
+    return (
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
+      (url.protocol === "http:" || url.protocol === "https:")
+    );
+  } catch {
+    return false;
+  }
+}
+
 const app = express();
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin) || serveFrontend) {
+    // Allow CRA (:3000), API origin, Flutter web (localhost:any), and same-host builds.
+    if (!origin || allowedOrigins.has(origin) || serveFrontend || isLocalDevOrigin(origin)) {
       callback(null, true);
       return;
     }

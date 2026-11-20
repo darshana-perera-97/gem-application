@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Gem, ImagePlus, Layers, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gem, ImagePlus, Layers, Sparkles, Video, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { apiGet, apiPost } from '../../lib/api';
 import { emitCatalogChange } from '../../lib/catalogEvents';
@@ -15,35 +15,14 @@ const SALE_TYPE_OPTIONS = [
 
 const GEM_TYPES = [
   'Sapphire', 'Ruby', 'Emerald', 'Spinel', 'Diamond',
-  'Alexandrite', 'Tourmaline', 'Aquamarine', 'Tanzanite',
+  'Alexandrite', 'Tourmaline', 'Aquamarine', 'Tanzanite', 'Other',
 ];
 
-const WEIGHT_OPTIONS = [
-  { value: '0.5', label: '0.5 ct' },
-  { value: '1', label: '1 ct' },
-  { value: '1.5', label: '1.5 ct' },
-  { value: '2', label: '2 ct' },
-  { value: '3', label: '3 ct' },
-  { value: '5', label: '5 ct' },
-  { value: '10', label: '10 ct' },
-];
-
-const PRICE_OPTIONS = [
-  { value: '50000', label: '50K' },
-  { value: '100000', label: '100K' },
-  { value: '250000', label: '250K' },
-  { value: '500000', label: '500K' },
-  { value: '1000000', label: '1M' },
-  { value: '2500000', label: '2.5M' },
-  { value: '5000000', label: '5M' },
-];
-
-const CUT_OPTIONS = ['Oval', 'Cushion', 'Round', 'Pear', 'Emerald Cut', 'Marquise', 'Cabochon'];
-const CLARITY_OPTIONS = ['Eye Clean', 'Loupe Clean', 'Slightly Included', 'Moderately Included', 'Heavily Included'];
-const TREATMENT_OPTIONS = ['Unheated', 'Heated', 'Unknown'];
-const CERTIFICATION_OPTIONS = ['None', 'GIA', 'GRS', 'GIC', 'Local Lab'];
-const ORIGIN_OPTIONS = ['Sri Lanka', 'Madagascar', 'Myanmar', 'Thailand', 'Mozambique', 'Tanzania'];
-const SHAPE_OPTIONS = ['Oval', 'Cushion', 'Round', 'Pear', 'Emerald', 'Marquise', 'Trilliant', 'Princess', 'Heart'];
+const CUT_OPTIONS = ['Oval', 'Cushion', 'Round', 'Pear', 'Emerald Cut', 'Marquise', 'Cabochon', 'Other'];
+const CLARITY_OPTIONS = ['Eye Clean', 'Loupe Clean', 'Slightly Included', 'Moderately Included', 'Heavily Included', 'Other'];
+const TREATMENT_OPTIONS = ['Unheated', 'Heated', 'Unknown', 'Other'];
+const CERTIFICATION_OPTIONS = ['None', 'GIA', 'GRS', 'GIC', 'Local Lab', 'Other'];
+const ORIGIN_OPTIONS = ['Sri Lanka', 'Madagascar', 'Myanmar', 'Thailand', 'Mozambique', 'Tanzania', 'Other'];
 const STATUS_OPTIONS = [
   { value: 'ACTIVE', label: 'Available' },
   { value: 'SOLD', label: 'Sold' },
@@ -162,28 +141,53 @@ export function AddListingForm({
     treatment: '',
     certification: '',
     origin: '',
-    shape: '',
   });
 
   const steps = useMemo(() => {
     const base = [
       { id: 'saleType', label: 'What are you selling?', hint: 'Choose a single gem or a gem lot.' },
-      { id: 'gemType', label: 'Gem Type', hint: 'What kind of stone are you listing?' },
-      { id: 'weight', label: 'Carat Weight', hint: 'Enter the carat weight of the gem.' },
-      { id: 'price', label: 'Price (LKR)', hint: 'Set your asking price in Sri Lankan Rupees.' },
-      { id: 'cut', label: 'Cut', hint: 'Choose the cut of the stone.' },
-      { id: 'clarity', label: 'Clarity', hint: 'How clean is the stone?' },
-      { id: 'treatment', label: 'Treatment', hint: 'Has the stone been treated?' },
-      { id: 'certification', label: 'Certification', hint: 'Any lab certification?' },
-      { id: 'origin', label: 'Origin', hint: 'Where is the stone from?' },
-      { id: 'shape', label: 'Shape', hint: 'Select the shape of the gem.' },
     ];
+
+    if (saleType !== 'lot') {
+      base.push(
+        { id: 'gemType', label: 'Gem Type', hint: 'What kind of stone are you listing?' },
+        { id: 'weight', label: 'Carat Weight', hint: 'Enter the carat weight of the gem.' },
+        { id: 'price', label: 'Price (LKR)', hint: 'Set your asking price in Sri Lankan Rupees.' },
+        { id: 'cut', label: 'Cut', hint: 'Choose the cut of the stone.' },
+        { id: 'clarity', label: 'Clarity', hint: 'How clean is the stone?' },
+        { id: 'treatment', label: 'Treatment', hint: 'Has the stone been treated?' },
+        { id: 'certification', label: 'Certification', hint: 'Any lab certification?' },
+        { id: 'origin', label: 'Origin', hint: 'Where is the stone from?' },
+      );
+    }
+
     if (isEditing) {
       base.push({ id: 'status', label: 'Listing Status', hint: 'Is this gem still available?' });
     }
-    base.push({ id: 'photos', label: 'Photos', hint: 'Add 1 to 5 clear photos. First image is the cover.' });
+
+    base.push(
+      {
+        id: 'photos',
+        label: 'Photos',
+        hint: saleType === 'lot'
+          ? 'Add 1 to 5 clear photos of your gem lot. First image is the cover.'
+          : 'Add 1 to 5 clear photos. First image is the cover.',
+      },
+      {
+        id: 'aiVideo',
+        label: 'Make an AI Video',
+        hint: saleType === 'lot'
+          ? 'Create a short AI video showcase for your gem lot — or skip for now.'
+          : 'Create a short AI video showcase for your gem — or skip for now.',
+      },
+    );
+
     return base;
-  }, [isEditing]);
+  }, [isEditing, saleType]);
+
+  useEffect(() => {
+    setStepIndex((current) => Math.min(current, Math.max(steps.length - 1, 0)));
+  }, [steps.length]);
 
   const currentStep = steps[stepIndex] || steps[0];
   const isFirstStep = stepIndex === 0;
@@ -234,7 +238,6 @@ export function AddListingForm({
           treatment: String(listing.treatment || '').trim(),
           certification: String(listing.certification || '').trim(),
           origin: String(listing.origin || '').trim(),
-          shape: String(listing.shape || '').trim(),
         });
         setStepIndex(0);
       })
@@ -353,7 +356,7 @@ export function AddListingForm({
         return true;
       case 'gemType':
         if (!String(selectedGemType || '').trim()) {
-          alert('Select or enter a gem type.');
+          alert('Select a gem type.');
           return false;
         }
         return true;
@@ -403,12 +406,6 @@ export function AddListingForm({
           return false;
         }
         return true;
-      case 'shape':
-        if (!form.shape) {
-          alert('Select a shape.');
-          return false;
-        }
-        return true;
       case 'status':
         return true;
       case 'photos':
@@ -420,6 +417,8 @@ export function AddListingForm({
           alert(`You can upload a maximum of ${MAX_IMAGES} images.`);
           return false;
         }
+        return true;
+      case 'aiVideo':
         return true;
       default:
         return true;
@@ -460,25 +459,26 @@ export function AddListingForm({
 
     setLoading(true);
 
-    const gemType = String(selectedGemType || '').trim() || 'Sapphire';
-    const weightLabel = form.weight ? `${form.weight}ct ` : '';
-    const lotLabel = saleType === 'lot' ? ' Lot' : '';
-    const title = `${weightLabel}${gemType}${lotLabel}`.trim();
+    const isLot = saleType === 'lot';
+    const gemType = isLot
+      ? 'Gem Lot'
+      : (String(selectedGemType || '').trim() || 'Sapphire');
+    const weightLabel = !isLot && form.weight ? `${form.weight}ct ` : '';
+    const title = isLot ? 'Gem Lot' : `${weightLabel}${gemType}`.trim();
 
     const payload = {
       userId: userProfile.uid,
       title,
-      saleType: saleType === 'lot' ? 'lot' : 'single',
+      saleType: isLot ? 'lot' : 'single',
       gemType,
-      caratWeight: Number(form.weight),
-      price: Number(form.price),
+      caratWeight: isLot ? 0 : Number(form.weight),
+      price: isLot ? 0 : Number(form.price),
       currency: 'LKR',
-      cut: form.cut,
-      clarity: form.clarity,
-      treatment: form.treatment,
-      certification: form.certification,
-      origin: form.origin,
-      shape: form.shape,
+      cut: isLot ? '' : form.cut,
+      clarity: isLot ? '' : form.clarity,
+      treatment: isLot ? '' : form.treatment,
+      certification: isLot ? '' : form.certification,
+      origin: isLot ? '' : form.origin,
       dimensions: '',
       description: '',
       images,
@@ -593,103 +593,72 @@ export function AddListingForm({
 
           {currentStep.id === 'gemType' && (
             <ChoiceStep
-              allowCustom
               options={GEM_TYPES}
               value={selectedGemType}
               onSelect={(type) => selectAndAdvance(() => setSelectedGemType(type))}
-              onCustomChange={setSelectedGemType}
-              customPlaceholder="e.g. Padparadscha"
             />
           )}
 
           {currentStep.id === 'weight' && (
-            <ChoiceStep
-              allowCustom
-              options={WEIGHT_OPTIONS}
+            <input
+              type="number"
+              step="0.01"
+              min="0"
               value={form.weight}
-              onSelect={(weight) => selectAndAdvance(() => updateField('weight', weight))}
-              onCustomChange={(weight) => updateField('weight', weight)}
-              customPlaceholder="e.g. 2.75"
-              customInputType="number"
-              customStep="0.01"
+              onChange={(event) => updateField('weight', event.target.value)}
+              placeholder="e.g. 2.75"
+              className={FIELD_CLASS}
             />
           )}
 
           {currentStep.id === 'price' && (
-            <ChoiceStep
-              allowCustom
-              options={PRICE_OPTIONS}
+            <input
+              type="number"
+              min="0"
               value={form.price}
-              onSelect={(price) => selectAndAdvance(() => updateField('price', price))}
-              onCustomChange={(price) => updateField('price', price)}
-              customPlaceholder="e.g. 175000"
-              customInputType="number"
+              onChange={(event) => updateField('price', event.target.value)}
+              placeholder="e.g. 175000"
+              className={FIELD_CLASS}
             />
           )}
 
           {currentStep.id === 'cut' && (
             <ChoiceStep
-              allowCustom
               options={CUT_OPTIONS}
               value={form.cut}
               onSelect={(cut) => selectAndAdvance(() => updateField('cut', cut))}
-              onCustomChange={(cut) => updateField('cut', cut)}
-              customPlaceholder="e.g. Asscher"
             />
           )}
 
           {currentStep.id === 'clarity' && (
             <ChoiceStep
-              allowCustom
               options={CLARITY_OPTIONS}
               value={form.clarity}
               onSelect={(clarity) => selectAndAdvance(() => updateField('clarity', clarity))}
-              onCustomChange={(clarity) => updateField('clarity', clarity)}
-              customPlaceholder="e.g. VS1"
             />
           )}
 
           {currentStep.id === 'treatment' && (
             <ChoiceStep
-              allowCustom
               options={TREATMENT_OPTIONS}
               value={form.treatment}
               onSelect={(treatment) => selectAndAdvance(() => updateField('treatment', treatment))}
-              onCustomChange={(treatment) => updateField('treatment', treatment)}
-              customPlaceholder="e.g. Diffusion"
             />
           )}
 
           {currentStep.id === 'certification' && (
             <ChoiceStep
-              allowCustom
               options={CERTIFICATION_OPTIONS}
               value={form.certification}
               onSelect={(certification) => selectAndAdvance(() => updateField('certification', certification))}
-              onCustomChange={(certification) => updateField('certification', certification)}
-              customPlaceholder="e.g. AGL"
             />
           )}
 
           {currentStep.id === 'origin' && (
             <ChoiceStep
-              allowCustom
               options={ORIGIN_OPTIONS}
               value={form.origin}
               onSelect={(origin) => selectAndAdvance(() => updateField('origin', origin))}
-              onCustomChange={(origin) => updateField('origin', origin)}
-              customPlaceholder="e.g. Kashmir"
-            />
-          )}
-
-          {currentStep.id === 'shape' && (
-            <ChoiceStep
-              allowCustom
-              options={SHAPE_OPTIONS}
-              value={form.shape}
-              onSelect={(shape) => selectAndAdvance(() => updateField('shape', shape))}
-              onCustomChange={(shape) => updateField('shape', shape)}
-              customPlaceholder="e.g. Radiant"
             />
           )}
 
@@ -779,6 +748,33 @@ export function AddListingForm({
               </div>
             </div>
           )}
+
+          {currentStep.id === 'aiVideo' && (
+            <div className="space-y-4">
+              <div className="rounded-3xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white px-6 py-8 text-center space-y-4">
+                <span className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Video size={28} />
+                </span>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-black tracking-tight text-slate-900">Make an AI Video</h3>
+                  <p className="text-sm text-slate-500 font-medium max-w-sm mx-auto">
+                    {saleType === 'lot'
+                      ? 'Turn your lot photos into a short AI video buyers can watch on your listing.'
+                      : 'Turn your gem photos into a short AI video buyers can watch on your listing.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alert('AI video generation is coming soon. You can publish now and add a video later.')}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-primary text-white font-bold shadow-md shadow-primary/25 hover:shadow-primary/35 transition-all"
+                >
+                  <Sparkles size={16} />
+                  Make AI Video
+                </button>
+                <p className="text-[11px] text-slate-400 font-medium">Optional — continue below to publish without a video.</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-2">
@@ -793,7 +789,7 @@ export function AddListingForm({
 
           <button
             type="submit"
-            disabled={loading || (isLastStep && images.length < MIN_IMAGES)}
+            disabled={loading || (currentStep.id === 'photos' && images.length < MIN_IMAGES)}
             className="px-4 py-2.5 bg-primary text-white rounded-xl font-bold shadow-md shadow-primary/25 hover:shadow-primary/35 hover:-translate-y-0.5 active:translate-y-0 transition-all inline-flex items-center justify-center gap-1.5 text-sm disabled:opacity-50"
           >
             {isLastStep

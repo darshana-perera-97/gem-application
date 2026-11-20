@@ -8,6 +8,8 @@
     "dev": "node --watch server.js",
     "build:frontend": "npm --prefix ../frontend run build",
     "start:app": "npm run build:frontend && node server.js",
+    "db:start": "mkdir -p data/db && (lsof -t -iTCP:27017 -sTCP:LISTEN >/dev/null && echo 'MongoDB already running on 27017' || (nohup .mongodb/mongodb-macos-aarch64--8.2.1/bin/mongod --dbpath data/db --bind_ip 127.0.0.1 --port 27017 --logpath data/mongod.log >/dev/null 2>&1 & echo 'MongoDB started (backend/data)'))",
+    "db:stop": "kill $(lsof -t -iTCP:27017 -sTCP:LISTEN) 2>/dev/null && echo 'MongoDB stopped' || echo 'MongoDB was not running'",
     "db:init": "node src/initDatabase.js",
     "db:seed": "node src/catalog.js"
   },
