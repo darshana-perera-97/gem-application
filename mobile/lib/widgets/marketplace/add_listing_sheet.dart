@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/api_client.dart';
 import '../../services/catalog_events.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/social_ui.dart';
 
 const _gemTypes = [
   'Sapphire', 'Ruby', 'Emerald', 'Spinel', 'Diamond',
@@ -235,10 +236,7 @@ class _AddListingSheetState extends State<AddListingSheet> {
                   Expanded(
                     child: Text(
                       _editing ? 'Edit listing' : 'List a gem',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      style: SocialUi.nameStyle.copyWith(fontSize: 17),
                     ),
                   ),
                   IconButton(
@@ -246,7 +244,7 @@ class _AddListingSheetState extends State<AddListingSheet> {
                       widget.onClose();
                       Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close_rounded, color: SocialUi.mute),
                   ),
                 ],
               ),
@@ -255,7 +253,7 @@ class _AddListingSheetState extends State<AddListingSheet> {
               value: (_step + 1) / _steps.length,
               backgroundColor: AppColors.slate100,
               color: AppColors.primary,
-              minHeight: 3,
+              minHeight: 2,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -270,7 +268,7 @@ class _AddListingSheetState extends State<AddListingSheet> {
                   _error,
                   style: const TextStyle(
                     color: Color(0xFFEF4444),
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
                 ),
@@ -353,7 +351,7 @@ class _AddListingSheetState extends State<AddListingSheet> {
           children: [
             const Text(
               'Add photos',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -428,7 +426,7 @@ class _AddListingSheetState extends State<AddListingSheet> {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 20),
         Wrap(
@@ -462,7 +460,7 @@ class _AddListingSheetState extends State<AddListingSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+        Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
         const SizedBox(height: 20),
         TextField(
           keyboardType: const TextInputType.numberWithOptions(decimal: true),

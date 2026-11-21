@@ -66,112 +66,127 @@ class _PhoneVerifyDialogState extends State<PhoneVerifyDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.viewInsetsOf(context);
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.primarySoft,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(Icons.phone, color: AppColors.primary, size: 28),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              widget.title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: AppColors.slate900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.description,
-              style: const TextStyle(fontSize: 14, color: AppColors.slate500),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'MOBILE NUMBER',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-                color: AppColors.slate400,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _phone,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
-                prefixText: '+94  ',
-                prefixStyle: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.slate400,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: viewInsets.bottom > 0 ? 8 : 0),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.phone,
+                      color: AppColors.primary, size: 28),
                 ),
-                hintText: '77 123 4567',
-                filled: true,
-                fillColor: AppColors.slate50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            if (_error.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFECACA)),
-                ),
-                child: Text(
-                  _error,
+                const SizedBox(height: 20),
+                Text(
+                  widget.title,
                   style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFEF4444),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.slate900,
                   ),
                 ),
-              ),
-            ],
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submitting || _phone.text.length < 9 ? null : _save,
-                child: _submitting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Save number'),
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.description,
+                  style:
+                      const TextStyle(fontSize: 14, color: AppColors.slate500),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'MOBILE NUMBER',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    color: AppColors.slate400,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _phone,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    prefixText: '+94  ',
+                    prefixStyle: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.slate400,
+                    ),
+                    hintText: '77 123 4567',
+                    filled: true,
+                    fillColor: AppColors.slate50,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                if (_error.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFFECACA)),
+                    ),
+                    child: Text(
+                      _error,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFEF4444),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed:
+                        _submitting || _phone.text.length < 9 ? null : _save,
+                    child: _submitting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Save number'),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    widget.onClose();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                widget.onClose();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
+          ),
         ),
       ),
     );

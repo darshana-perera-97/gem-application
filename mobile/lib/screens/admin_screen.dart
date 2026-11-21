@@ -103,38 +103,45 @@ class _AdminScreenState extends State<AdminScreen>
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: PageCard(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Admin', style: SocialUi.pageTitleStyle),
-                  const SizedBox(height: SocialUi.sectionGap),
-                  TextField(
-                    controller: _username,
-                    decoration: const InputDecoration(labelText: 'Username'),
-                  ),
-                  const SizedBox(height: SocialUi.sectionGap),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Password'),
-                  ),
-                  if (_error.isNotEmpty) ...[
+            child: SingleChildScrollView(
+              child: PageCard(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Admin', style: SocialUi.pageTitleStyle),
                     const SizedBox(height: SocialUi.sectionGap),
-                    Text(
-                      _error,
-                      style: const TextStyle(
-                        color: Color(0xFFEF4444),
-                        fontWeight: FontWeight.w700,
+                    TextField(
+                      controller: _username,
+                      decoration:
+                          const InputDecoration(labelText: 'Username'),
+                    ),
+                    const SizedBox(height: SocialUi.sectionGap),
+                    TextField(
+                      controller: _password,
+                      obscureText: true,
+                      decoration:
+                          const InputDecoration(labelText: 'Password'),
+                    ),
+                    if (_error.isNotEmpty) ...[
+                      const SizedBox(height: SocialUi.sectionGap),
+                      Text(
+                        _error,
+                        style: const TextStyle(
+                          color: Color(0xFFEF4444),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: SocialUi.sectionGap),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _login,
+                        child: const Text('Sign in'),
                       ),
                     ),
                   ],
-                  const SizedBox(height: SocialUi.sectionGap),
-                  ElevatedButton(
-                    onPressed: _login,
-                    child: const Text('Sign in'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

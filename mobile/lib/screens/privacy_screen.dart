@@ -84,8 +84,10 @@ class PrivacyScreen extends StatelessWidget {
                 Text(
                   section.$1,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    color: AppColors.slate900,
                   ),
                 ),
                 const SizedBox(height: SocialUi.sectionGap),
@@ -94,8 +96,7 @@ class PrivacyScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: SocialUi.itemGap),
                     child: Text(
                       p,
-                      style: const TextStyle(
-                        height: 1.55,
+                      style: SocialUi.bodyStyle.copyWith(
                         color: AppColors.slate600,
                       ),
                     ),

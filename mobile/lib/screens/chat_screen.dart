@@ -185,7 +185,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       title: Text(
                         '${c['otherUserName'] ?? c['title'] ?? 'Chat'}',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                        style: SocialUi.nameStyle,
                       ),
                       subtitle: Text(
                         '${c['lastMessage'] ?? ''}',
@@ -225,7 +225,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     Expanded(
                       child: Text(
                         '${_active!['otherUserName'] ?? 'Chat'}',
-                        style: const TextStyle(fontWeight: FontWeight.w800),
+                        style: SocialUi.nameStyle.copyWith(fontSize: 16),
                       ),
                     ),
                     PopupMenuButton<String>(
@@ -268,23 +268,20 @@ class _ChatScreenState extends State<ChatScreen> {
                           maxWidth: MediaQuery.sizeOf(context).width * 0.72,
                         ),
                         decoration: BoxDecoration(
-                          color: mine ? AppColors.primary : Colors.white,
+                          color: mine ? AppColors.primary : AppColors.slate50,
                           borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(16),
-                            topRight: const Radius.circular(16),
-                            bottomLeft: Radius.circular(mine ? 16 : 4),
-                            bottomRight: Radius.circular(mine ? 4 : 16),
+                            topLeft: const Radius.circular(18),
+                            topRight: const Radius.circular(18),
+                            bottomLeft: Radius.circular(mine ? 18 : 6),
+                            bottomRight: Radius.circular(mine ? 6 : 18),
                           ),
-                          border: mine
-                              ? null
-                              : Border.all(color: SocialUi.hairline),
-                          boxShadow: mine ? null : SocialUi.softShadow,
                         ),
                         child: Text(
                           '${msg['content'] ?? ''}',
                           style: TextStyle(
                             color: mine ? Colors.white : AppColors.slate800,
-                            height: 1.35,
+                            height: 1.4,
+                            fontSize: 15,
                           ),
                         ),
                       ),
@@ -306,13 +303,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         decoration: InputDecoration(
                           hintText: 'Type a message…',
                           filled: true,
-                          fillColor: SocialUi.feedCanvas,
+                          fillColor: AppColors.slate50,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(22),
+                            borderRadius:
+                                BorderRadius.circular(SocialUi.searchRadius),
                             borderSide: BorderSide.none,
                           ),
                         ),
@@ -335,31 +333,38 @@ class _ChatScreenState extends State<ChatScreen> {
             ],
           );
 
-    final body = !wide
-        ? Container(
-            decoration: SocialUi.elevatedCardDecoration,
-            clipBehavior: Clip.antiAlias,
-            child: SizedBox(
-              height: MediaQuery.sizeOf(context).height * 0.72,
-              child: showList && _active == null ? inbox : thread,
-            ),
-          )
-        : Container(
-            height: MediaQuery.sizeOf(context).height * 0.72,
-            decoration: SocialUi.elevatedCardDecoration,
-            clipBehavior: Clip.antiAlias,
-            child: Row(
-              children: [
-                SizedBox(width: 320, child: inbox),
-                const VerticalDivider(width: 1, color: SocialUi.hairline),
-                Expanded(child: thread),
-              ],
-            ),
-          );
-
     return Padding(
       padding: SocialUi.pageInsets,
-      child: body,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxH = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : MediaQuery.sizeOf(context).height * 0.72;
+          final body = !wide
+              ? Container(
+                  decoration: SocialUi.elevatedCardDecoration,
+                  clipBehavior: Clip.antiAlias,
+                  child: SizedBox(
+                    height: maxH,
+                    child: showList && _active == null ? inbox : thread,
+                  ),
+                )
+              : Container(
+                  height: maxH,
+                  decoration: SocialUi.elevatedCardDecoration,
+                  clipBehavior: Clip.antiAlias,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 320, child: inbox),
+                      const VerticalDivider(
+                          width: 1, color: SocialUi.hairline),
+                      Expanded(child: thread),
+                    ],
+                  ),
+                );
+          return body;
+        },
+      ),
     );
   }
 }

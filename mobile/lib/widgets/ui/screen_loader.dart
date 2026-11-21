@@ -3,9 +3,18 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import 'brand_gem.dart';
 
+/// In-app loading screen used while screens / data fetch.
 class ScreenLoader extends StatefulWidget {
-  const ScreenLoader({super.key});
+  const ScreenLoader({
+    super.key,
+    this.message = 'Loading',
+    this.fullscreen = true,
+  });
+
+  final String message;
+  final bool fullscreen;
 
   @override
   State<ScreenLoader> createState() => _ScreenLoaderState();
@@ -32,87 +41,72 @@ class _ScreenLoaderState extends State<ScreenLoader>
 
   @override
   Widget build(BuildContext context) {
+    final body = Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 72,
+            height: 72,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primarySoft,
+                      ),
+                    ),
+                    Transform.rotate(
+                      angle: _controller.value * 2 * math.pi,
+                      child: CustomPaint(
+                        size: const Size(72, 72),
+                        painter: _RingPainter(
+                          color: AppColors.primary,
+                          stroke: 2.5,
+                        ),
+                      ),
+                    ),
+                    Transform.rotate(
+                      angle: -_controller.value * 2 * math.pi,
+                      child: CustomPaint(
+                        size: const Size(50, 50),
+                        painter: _RingPainter(
+                          color: AppColors.accent,
+                          stroke: 2,
+                        ),
+                      ),
+                    ),
+                    const BrandGemIcon(size: 24),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            widget.message,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              letterSpacing: -0.1,
+              color: AppColors.slate500,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!widget.fullscreen) return body;
+
     return ColoredBox(
       color: AppColors.background,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 80,
-              height: 80,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryGlow,
-                              blurRadius: 28,
-                              spreadRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Transform.rotate(
-                        angle: _controller.value * 2 * math.pi,
-                        child: CustomPaint(
-                          size: const Size(80, 80),
-                          painter: _RingPainter(
-                            color: AppColors.primary,
-                            stroke: 3,
-                          ),
-                        ),
-                      ),
-                      Transform.rotate(
-                        angle: -_controller.value * 2 * math.pi,
-                        child: CustomPaint(
-                          size: const Size(56, 56),
-                          painter: _RingPainter(
-                            color: AppColors.accent,
-                            stroke: 2.5,
-                          ),
-                        ),
-                      ),
-                      const Icon(Icons.diamond_outlined,
-                          color: AppColors.primary, size: 28),
-                    ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'LOADING',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 6.5,
-                color: AppColors.slate500,
-              ),
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: SizedBox(
-                width: 72,
-                height: 3,
-                child: LinearProgressIndicator(
-                  backgroundColor: AppColors.slate200,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: body,
     );
   }
 }

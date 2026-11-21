@@ -27,7 +27,7 @@ class PageHeader extends StatelessWidget {
             children: [
               Text(title, style: SocialUi.pageTitleStyle),
               if (subtitle != null && subtitle!.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(subtitle!, style: SocialUi.pageSubtitleStyle),
               ],
             ],
@@ -35,14 +35,14 @@ class PageHeader extends StatelessWidget {
         ),
         if (trailing != null) ...[
           const SizedBox(width: SocialUi.itemGap),
-          trailing!,
+          Flexible(child: trailing!),
         ],
       ],
     );
   }
 }
 
-/// White rounded surface used for content blocks on the gray canvas.
+/// Clean white surface — border-first, minimal shadow.
 class PageCard extends StatelessWidget {
   const PageCard({
     super.key,
@@ -99,27 +99,28 @@ class PageEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 color: AppColors.primarySoft,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(icon, size: 32, color: AppColors.primary),
+              child: Icon(icon, size: 28, color: AppColors.primary),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             Text(
               message,
               textAlign: TextAlign.center,
               style: SocialUi.pageSubtitleStyle.copyWith(
                 fontSize: 15,
                 color: AppColors.slate600,
+                height: 1.45,
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
@@ -128,9 +129,6 @@ class PageEmpty extends StatelessWidget {
                 onPressed: onAction,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(160, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(SocialUi.buttonRadius),
-                  ),
                 ),
                 child: Text(actionLabel!),
               ),
@@ -142,7 +140,7 @@ class PageEmpty extends StatelessWidget {
   }
 }
 
-/// Soft pill filter chip — primary when selected.
+/// Soft filter chip — filled primary when selected, quiet otherwise.
 class GemFilterChip extends StatelessWidget {
   const GemFilterChip({
     super.key,
@@ -167,9 +165,10 @@ class GemFilterChip extends StatelessWidget {
       labelStyle: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
+        letterSpacing: -0.1,
         color: selected ? Colors.white : AppColors.slate700,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SocialUi.chipRadius),
         side: BorderSide(
@@ -196,7 +195,7 @@ ChipThemeData pageChipTheme(BuildContext context) {
       fontWeight: FontWeight.w600,
       color: Colors.white,
     ),
-    padding: const EdgeInsets.symmetric(horizontal: 4),
+    padding: const EdgeInsets.symmetric(horizontal: 6),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(SocialUi.chipRadius),
       side: const BorderSide(color: SocialUi.hairline),

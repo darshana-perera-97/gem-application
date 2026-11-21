@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gem } from 'lucide-react';
+import { BrandGemIcon } from './BrandGemIcon';
 
 export function ScreenLoader() {
   return (
@@ -9,8 +9,8 @@ export function ScreenLoader() {
         <div className="relative h-20 w-20">
           <span className="screen-loader__ring" />
           <span className="screen-loader__ring screen-loader__ring--inner" />
-          <span className="absolute inset-0 flex items-center justify-center">
-            <Gem className="screen-loader__gem text-primary" size={28} strokeWidth={1.75} />
+          <span className="absolute inset-0 flex items-center justify-center text-primary">
+            <BrandGemIcon className="screen-loader__gem" size={28} />
           </span>
         </div>
         <div className="flex flex-col items-center gap-2">

@@ -128,12 +128,17 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        '${review['authorName'] ?? 'Member'}',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      Expanded(
+                        child: Text(
+                          '${review['authorName'] ?? 'Member'}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: List.generate(
                           5,
                           (i) => Icon(

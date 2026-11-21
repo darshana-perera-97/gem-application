@@ -40,34 +40,36 @@ class _SeedScreenState extends State<SeedScreen> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
-          child: PageCard(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Seed catalog', style: SocialUi.pageTitleStyle),
-                const SizedBox(height: SocialUi.feedGap),
-                const Text(
-                  'Development helper to populate listings, vendors, and feed content when the database is empty.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.slate500),
-                ),
-                const SizedBox(height: SocialUi.sectionGap),
-                ElevatedButton(
-                  onPressed: _busy ? null : _seed,
-                  child: _busy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Run seed'),
-                ),
-                if (_status.isNotEmpty) ...[
+          child: SingleChildScrollView(
+            child: PageCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Seed catalog', style: SocialUi.pageTitleStyle),
+                  const SizedBox(height: SocialUi.feedGap),
+                  const Text(
+                    'Development helper to populate listings, vendors, and feed content when the database is empty.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.slate500),
+                  ),
                   const SizedBox(height: SocialUi.sectionGap),
-                  Text(_status, textAlign: TextAlign.center),
+                  ElevatedButton(
+                    onPressed: _busy ? null : _seed,
+                    child: _busy
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Run seed'),
+                  ),
+                  if (_status.isNotEmpty) ...[
+                    const SizedBox(height: SocialUi.sectionGap),
+                    Text(_status, textAlign: TextAlign.center),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

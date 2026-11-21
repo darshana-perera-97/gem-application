@@ -26,15 +26,14 @@ class StandalonePage extends StatelessWidget {
           foregroundColor: AppColors.slate900,
           elevation: 0,
           surfaceTintColor: Colors.white,
-          scrolledUnderElevation: 0.5,
+          scrolledUnderElevation: 0,
           leading: IconButton(
             icon: Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
                 color: AppColors.slate50,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: SocialUi.hairline),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.arrow_back_rounded, size: 20),
             ),
@@ -49,9 +48,9 @@ class StandalonePage extends StatelessWidget {
           title: Text(
             title,
             style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.2,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.3,
               color: AppColors.slate900,
             ),
           ),

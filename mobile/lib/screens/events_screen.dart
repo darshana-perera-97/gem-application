@@ -74,12 +74,18 @@ class _EventsScreenState extends State<EventsScreen> {
                         const Icon(Icons.calendar_month_rounded,
                             size: 18, color: AppColors.primary),
                         const SizedBox(height: 2),
-                        Text(
-                          '${event['date']}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.slate800,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            '${event['date']}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.slate800,
+                            ),
                           ),
                         ),
                       ],
@@ -125,11 +131,11 @@ class _EventsScreenState extends State<EventsScreen> {
                             BorderRadius.circular(SocialUi.buttonRadius),
                       ),
                     ),
-                    child: Text(
+                      child: Text(
                       going ? 'Going' : 'RSVP',
                       style: const TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),

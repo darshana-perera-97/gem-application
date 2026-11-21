@@ -7,9 +7,11 @@ import '../../providers/auth_provider.dart';
 import '../../services/api_client.dart';
 import '../../services/chat_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/social_ui.dart';
 import '../../utils/images.dart';
 import '../marketplace/listing_card.dart';
 import '../ui/loading_image.dart';
+import '../ui/screen_loader.dart';
 import '../vendors/reviews_section.dart';
 
 class SellerProfileView extends StatefulWidget {
@@ -72,7 +74,7 @@ class _SellerProfileViewState extends State<SellerProfileView>
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
-      return const Center(child: CircularProgressIndicator());
+      return const ScreenLoader();
     }
     final vendor = _vendor;
     if (vendor == null) {
@@ -132,66 +134,73 @@ class _SellerProfileViewState extends State<SellerProfileView>
                   children: [
                     Text(
                       '${vendor['companyName'] ?? vendor['displayName'] ?? 'Vendor'}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      style: SocialUi.pageTitleStyle.copyWith(fontSize: 24),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       '${vendor['location'] ?? 'Sri Lanka'}',
-                      style: const TextStyle(color: AppColors.slate500),
+                      style: SocialUi.metaStyle.copyWith(fontSize: 13),
                     ),
                     if (vendor['description'] != null) ...[
-                      const SizedBox(height: 8),
-                      Text('${vendor['description']}'),
+                      const SizedBox(height: 10),
+                      Text(
+                        '${vendor['description']}',
+                        style: SocialUi.bodyStyle,
+                      ),
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     if (!isSelf)
                       Row(
                         children: [
-                          ElevatedButton(
-                            onPressed: () => activity.toggleFollow(
-                                widget.vendorId, 'vendor'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: following
-                                  ? AppColors.slate100
-                                  : AppColors.primary,
-                              foregroundColor: following
-                                  ? AppColors.slate700
-                                  : Colors.white,
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => activity.toggleFollow(
+                                  widget.vendorId, 'vendor'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: following
+                                    ? AppColors.slate100
+                                    : AppColors.primary,
+                                foregroundColor: following
+                                    ? AppColors.slate700
+                                    : Colors.white,
+                                elevation: 0,
+                              ),
+                              child: Text(following ? 'Following' : 'Follow'),
                             ),
-                            child: Text(following ? 'Following' : 'Follow'),
                           ),
                           const SizedBox(width: 8),
-                          OutlinedButton(
-                            onPressed: () async {
-                              if (!auth.isSignedIn) {
-                                context.push('/login');
-                                return;
-                              }
-                              try {
-                                await startConversation(
-                                  currentUser: auth.userProfile!,
-                                  otherUser: {
-                                    'uid': vendor['userId'] ?? widget.vendorId,
-                                    'displayName': vendor['companyName'] ??
-                                        vendor['displayName'],
-                                    'photoURL':
-                                        vendor['logo'] ?? vendor['photoURL'],
-                                  },
-                                );
-                                if (context.mounted) {
-                                  context.push('/messages');
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () async {
+                                if (!auth.isSignedIn) {
+                                  context.push('/login');
+                                  return;
                                 }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('$e')),
+                                try {
+                                  await startConversation(
+                                    currentUser: auth.userProfile!,
+                                    otherUser: {
+                                      'uid':
+                                          vendor['userId'] ?? widget.vendorId,
+                                      'displayName': vendor['companyName'] ??
+                                          vendor['displayName'],
+                                      'photoURL': vendor['logo'] ??
+                                          vendor['photoURL'],
+                                    },
                                   );
+                                  if (context.mounted) {
+                                    context.push('/messages');
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('$e')),
+                                    );
+                                  }
                                 }
-                              }
-                            },
-                            child: const Text('Message'),
+                              },
+                              child: const Text('Message'),
+                            ),
                           ),
                         ],
                       ),
@@ -200,6 +209,15 @@ class _SellerProfileViewState extends State<SellerProfileView>
                       labelColor: AppColors.primary,
                       unselectedLabelColor: AppColors.slate500,
                       indicatorColor: AppColors.primary,
+                      indicatorSize: TabBarIndicatorSize.label,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
                       tabs: [
                         const Tab(text: 'Collection'),
                         const Tab(text: 'Reviews'),
@@ -218,21 +236,27 @@ class _SellerProfileViewState extends State<SellerProfileView>
         controller: _tabs,
         children: [
           ListView(
-            padding: const EdgeInsets.all(16),
+            padding: SocialUi.pageInsets,
             children: _listings.isEmpty
                 ? [
-                    const Text('No gems listed yet.',
-                        style: TextStyle(color: AppColors.slate400))
+                    const Text(
+                      'No gems listed yet.',
+                      style: TextStyle(color: SocialUi.mute),
+                    ),
                   ]
                 : _listings
                     .map((l) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: ListingCard(listing: l),
+                          padding:
+                              const EdgeInsets.only(bottom: SocialUi.itemGap),
+                          child: ListingCard(
+                            listing: l,
+                            variant: ListingCardVariant.list,
+                          ),
                         ))
                     .toList(),
           ),
           ListView(
-            padding: const EdgeInsets.all(16),
+            padding: SocialUi.pageInsets,
             children: [
               ReviewsSection(
                 vendorId: widget.vendorId,
@@ -242,7 +266,7 @@ class _SellerProfileViewState extends State<SellerProfileView>
           ),
           if (widget.settingsBuilder != null)
             ListView(
-              padding: const EdgeInsets.all(16),
+              padding: SocialUi.pageInsets,
               children: [widget.settingsBuilder!(context)],
             ),
         ],

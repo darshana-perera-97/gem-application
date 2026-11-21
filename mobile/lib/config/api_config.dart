@@ -10,7 +10,8 @@ class ApiConfig {
   /// - Chrome / iOS Simulator / desktop: `http://localhost:1324`
   /// - Android emulator: `localhost` is auto-rewritten to `10.0.2.2`
   /// - Physical device: use your machine's LAN IP, e.g. `http://192.168.1.10:1324`
-  static const String backendUrl = 'http://localhost:1324';
+  static const String backendUrl = 'https://gem-dev.aipulse.lk/';
+  // static const String backendUrl = 'http://localhost:1324';
 
   static String get baseUrl {
     const fromEnv = String.fromEnvironment('API_BASE');

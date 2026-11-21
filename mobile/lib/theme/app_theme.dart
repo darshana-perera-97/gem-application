@@ -31,39 +31,45 @@ ThemeData buildAppTheme() {
       backgroundColor: Colors.white,
       foregroundColor: AppColors.slate800,
       elevation: 0,
-      scrolledUnderElevation: 0.5,
-      shadowColor: Colors.black12,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
       centerTitle: false,
       titleTextStyle: textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: AppColors.slate900,
-        fontSize: 18,
+        fontSize: 17,
+        letterSpacing: -0.3,
       ),
     ),
     cardTheme: CardThemeData(
       color: Colors.white,
       elevation: 0,
       margin: EdgeInsets.zero,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SocialUi.cardRadius),
+        side: const BorderSide(color: SocialUi.hairline),
       ),
       clipBehavior: Clip.antiAlias,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.slate50,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(SocialUi.searchRadius),
-        borderSide: const BorderSide(color: SocialUi.hairline),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(SocialUi.searchRadius),
-        borderSide: const BorderSide(color: SocialUi.hairline),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(SocialUi.searchRadius),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderSide: BorderSide(
+          color: AppColors.primary.withValues(alpha: 0.45),
+          width: 1.5,
+        ),
       ),
       hintStyle: textTheme.bodyMedium?.copyWith(color: SocialUi.mute),
       labelStyle: textTheme.bodyMedium?.copyWith(color: AppColors.slate600),
@@ -73,35 +79,53 @@ ThemeData buildAppTheme() {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        shadowColor: AppColors.primary.withValues(alpha: 0.35),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+        minimumSize: const Size(48, 48),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(SocialUi.buttonRadius),
         ),
-        textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+        textStyle: textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.1,
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.slate800,
         side: const BorderSide(color: SocialUi.hairline),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+        minimumSize: const Size(48, 48),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(SocialUi.buttonRadius),
         ),
-        textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+        textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primary,
-        textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+        textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SocialUi.buttonRadius),
+        ),
+        textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
       ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
-      elevation: 4,
+      elevation: 2,
+      highlightElevation: 3,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -109,14 +133,17 @@ ThemeData buildAppTheme() {
     chipTheme: ChipThemeData(
       backgroundColor: Colors.white,
       selectedColor: AppColors.primary,
-      labelStyle: textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+      labelStyle: textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500),
       secondaryLabelStyle: textTheme.labelMedium?.copyWith(
         fontWeight: FontWeight.w600,
         color: Colors.white,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SocialUi.chipRadius),
+      ),
       side: const BorderSide(color: SocialUi.hairline),
+      surfaceTintColor: Colors.transparent,
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
@@ -127,15 +154,42 @@ ThemeData buildAppTheme() {
       selectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
       unselectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
     ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      showDragHandle: true,
+      dragHandleColor: Color(0xFFD1D5DB),
+      dragHandleSize: Size(36, 4),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SocialUi.cardRadius),
+      ),
+      elevation: 0,
+    ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: AppColors.slate900,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
     dividerTheme: const DividerThemeData(
       color: SocialUi.hairline,
       thickness: 0.8,
       space: 1,
+    ),
+    listTileTheme: ListTileThemeData(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      iconColor: AppColors.slate600,
+      textColor: AppColors.slate900,
     ),
   );
 }

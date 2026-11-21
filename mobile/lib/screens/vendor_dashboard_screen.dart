@@ -125,12 +125,23 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Sales',
-                    style: TextStyle(fontWeight: FontWeight.w800)),
+                const Text(
+                  'Sales',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    letterSpacing: -0.2,
+                  ),
+                ),
                 const SizedBox(height: SocialUi.sectionGap),
                 Expanded(
                   child: sales.isEmpty
-                      ? const Center(child: Text('No sales data yet'))
+                      ? const Center(
+                          child: Text(
+                            'No sales data yet',
+                            style: TextStyle(color: SocialUi.mute),
+                          ),
+                        )
                       : LineChart(
                           LineChartData(
                             gridData: const FlGridData(show: false),
@@ -163,7 +174,11 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
         const SizedBox(height: SocialUi.sectionGap),
         const Text(
           'Inventory',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.2,
+          ),
         ),
         const SizedBox(height: SocialUi.sectionGap),
         ...inventory.map(
@@ -174,14 +189,14 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                 Expanded(
                   child: Text(
                     '${item['title'] ?? item['variety'] ?? 'Gem'}',
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: SocialUi.nameStyle,
                   ),
                 ),
                 Text(
                   '${item['status'] ?? 'ACTIVE'}',
                   style: const TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.slate500,
                   ),
                 ),
@@ -203,12 +218,15 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
             label,
             style: const TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: AppColors.slate500,
             ),
           ),
           const SizedBox(height: SocialUi.feedGap),
-          Text(value, style: SocialUi.pageTitleStyle),
+          Text(
+            value,
+            style: SocialUi.pageTitleStyle.copyWith(fontSize: 22),
+          ),
         ],
       ),
     );

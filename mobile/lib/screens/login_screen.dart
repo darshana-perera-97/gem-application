@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/social_ui.dart';
+import '../widgets/ui/brand_gem.dart';
 import '../widgets/ui/loading_image.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
             : 'Sent to ${_email.text}';
         break;
       default:
-        icon = Icons.public;
+        icon = Icons.diamond_outlined;
         title = 'Welcome to GemBook';
         subtitle = "The world's premier digital gemstone exchange";
     }
@@ -73,53 +74,36 @@ class _LoginScreenState extends State<LoginScreen> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: SingleChildScrollView(
-          padding: SocialUi.pageInsets.copyWith(top: 28, bottom: 28),
+          padding: SocialUi.pageInsets.copyWith(top: 36, bottom: 36),
           child: Container(
-            decoration: SocialUi.elevatedCardDecoration.copyWith(
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  blurRadius: 28,
-                  offset: const Offset(0, 12),
-                ),
-                ...SocialUi.softShadow,
-              ],
-            ),
+            decoration: SocialUi.elevatedCardDecoration,
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.08),
-                        AppColors.accent.withValues(alpha: 0.12),
-                        AppColors.slate50,
-                      ],
-                    ),
-                  ),
+                  padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
+                  color: AppColors.slate50,
                   child: Column(
                     children: [
                       Container(
-                        width: 76,
-                        height: 76,
+                        width: 68,
+                        height: 68,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius:
-                              BorderRadius.circular(SocialUi.cardRadius),
-                          boxShadow: SocialUi.softShadow,
+                              BorderRadius.circular(18),
+                          border: Border.all(color: SocialUi.hairline),
                         ),
-                        child: Icon(icon, size: 36, color: AppColors.primary),
+                        child: _step == 'options'
+                            ? const BrandGemIcon(size: 30)
+                            : Icon(icon, size: 30, color: AppColors.primary),
                       ),
-                      const SizedBox(height: SocialUi.sectionGap),
+                      const SizedBox(height: 20),
                       Text(
                         title,
                         textAlign: TextAlign.center,
-                        style: SocialUi.pageTitleStyle,
+                        style: SocialUi.pageTitleStyle.copyWith(fontSize: 24),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -131,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
                   child: Column(
                     children: [
                       if (_step == 'options') ..._options(auth),
@@ -351,9 +335,9 @@ class _LoginScreenState extends State<LoginScreen> {
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         textAlign: TextAlign.center,
         style: const TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 12,
+          fontSize: 26,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 10,
         ),
         decoration: _fieldDecoration('······').copyWith(counterText: ''),
       ),
@@ -478,18 +462,21 @@ class _LoginScreenState extends State<LoginScreen> {
       filled: true,
       fillColor: AppColors.slate50,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.slate100, width: 2),
+        borderRadius: BorderRadius.circular(SocialUi.searchRadius),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.slate100, width: 2),
+        borderRadius: BorderRadius.circular(SocialUi.searchRadius),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(SocialUi.searchRadius),
+        borderSide: BorderSide(
+          color: AppColors.primary.withValues(alpha: 0.45),
+          width: 1.5,
+        ),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
 
@@ -499,11 +486,13 @@ class _LoginScreenState extends State<LoginScreen> {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          side: const BorderSide(color: AppColors.slate200),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(SocialUi.buttonRadius),
+          ),
+          side: const BorderSide(color: SocialUi.hairline),
           foregroundColor: AppColors.slate900,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
         child: child,
       ),

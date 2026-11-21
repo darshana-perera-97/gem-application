@@ -11,8 +11,10 @@ import { useActivity } from '../contexts/ActivityContext';
 import { resolveGem } from '../constants/sampleImages';
 import { usePageReady } from '../contexts/PageLoadingContext';
 import { LoadingImage } from '../components/ui/LoadingImage';
+import { ShareSheet } from '../components/ui/ShareSheet';
 import { Seo } from '../components/seo/Seo';
 import { productJsonLd, truncateMeta } from '../lib/seo';
+import { listingShareUrl } from '../lib/shareItem';
 
 export const ProductPage = () => {
   const { id } = useParams();
@@ -24,6 +26,7 @@ export const ProductPage = () => {
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   usePageReady(!loading);
 
   useEffect(() => {
@@ -100,22 +103,7 @@ export const ProductPage = () => {
   );
   const isOwner = Boolean(userProfile?.uid && ownerIds.has(userProfile.uid));
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${listing.title || listing.name} | Ceylon Gem Book`,
-          text: `Check out this ${listing.gemType || listing.variety} on Ceylon Gem Book!`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log('Error sharing:', err);
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    }
-  };
+  const handleShare = () => setShareOpen(true);
 
   if (loading && id) {
     return <Seo title="Gem Listing" description="Loading gem listing on GemBook." />;
@@ -146,6 +134,13 @@ export const ProductPage = () => {
 
   return (
     <div className="space-y-6 md:space-y-8 pb-12">
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={listingTitle}
+        url={listingShareUrl(listing.id)}
+        message={`Check out this ${listing.gemType || listing.variety || 'gem'} on GemBook`}
+      />
       <Seo
         title={listingTitle}
         description={listingDescription}

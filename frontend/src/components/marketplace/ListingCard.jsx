@@ -6,7 +6,9 @@ import { resolveAvatar, resolveGem } from '../../constants/sampleImages';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActivity } from '../../contexts/ActivityContext';
 import { startConversation } from '../../lib/chat';
+import { listingShareUrl } from '../../lib/shareItem';
 import { LoadingImage } from '../ui/LoadingImage';
+import { ShareSheet } from '../ui/ShareSheet';
 
 function SellerBadge({ listing, dealerName, dealerAvatar, dealerLocation, dealerPhone, size = 'md' }) {
   const isCompact = size === 'sm';
@@ -98,8 +100,10 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
   const dealerAvatar = resolveAvatar(listing.vendor?.photoURL || listing.vendor?.logo);
   const images = (listing.images || []).map((img) => resolveGem(img)).filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [shareOpen, setShareOpen] = useState(false);
   const hasMultipleImages = images.length > 1;
   const title = listing.title || `${listing.variety} ${listing.type}`;
+  const shareUrl = listingShareUrl(listing.id);
 
   const handleEdit = (event) => {
     event.preventDefault();
@@ -169,21 +173,21 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
     }
   };
 
-  const handleShare = async (event) => {
+  const handleShare = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    const url = `${window.location.origin}/listings/${listing.id}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, url });
-        return;
-      } catch (error) {
-        console.log('Error sharing:', error);
-      }
-    }
-    await navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
+    setShareOpen(true);
   };
+
+  const shareSheet = (
+    <ShareSheet
+      open={shareOpen}
+      onClose={() => setShareOpen(false)}
+      title={title}
+      url={shareUrl}
+      message={`Check out ${title} on GemBook`}
+    />
+  );
 
   const handleMessage = async (event) => {
     event.preventDefault();
@@ -227,6 +231,8 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
 
   if (isList) {
     return (
+      <>
+      {shareSheet}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group hover:shadow-xl hover:border-slate-300 transition-all duration-500">
         <div className="flex flex-col sm:flex-row">
           <div className="relative sm:w-48 md:w-56 lg:w-64 shrink-0 aspect-[4/3] sm:aspect-auto sm:min-h-[11rem] overflow-hidden bg-slate-100">
@@ -369,10 +375,13 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   return (
+    <>
+    {shareSheet}
     <div className={cn(
       'bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group hover:shadow-xl hover:border-slate-300 transition-all duration-500',
       variant === 'feed' ? 'mb-6' : ''
@@ -539,5 +548,6 @@ export const ListingCard = ({ listing, variant = 'grid', ownerMode = false, stat
         </div>
       </div>
     </div>
+    </>
   );
 };

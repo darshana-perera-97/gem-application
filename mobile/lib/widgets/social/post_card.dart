@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../providers/activity_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/social_ui.dart';
 import '../../utils/images.dart';
+import '../../utils/share_item.dart';
 import '../ui/loading_image.dart';
 import 'comment_section.dart';
 
-/// Facebook / LinkedIn-style feed post: header → body → media → counts → actions.
+/// Minimal feed post card.
 class PostCard extends StatefulWidget {
   const PostCard({super.key, required this.post});
 
@@ -59,9 +59,9 @@ class _PostCardState extends State<PostCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 6, 8),
+            padding: const EdgeInsets.fromLTRB(16, 16, 8, 10),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
                   radius: SocialUi.avatarMd / 2,
@@ -75,7 +75,7 @@ class _PostCardState extends State<PostCard> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,10 +84,11 @@ class _PostCardState extends State<PostCard> {
                         '${post['authorName'] ?? 'Member'}',
                         style: SocialUi.nameStyle,
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         authorType == 'VENDOR'
                             ? 'Verified vendor · ${_relativeTime(post['createdAt'])}'
-                            : '${_relativeTime(post['createdAt'])} · GemBook',
+                            : _relativeTime(post['createdAt']),
                         style: SocialUi.metaStyle,
                       ),
                     ],
@@ -101,18 +102,21 @@ class _PostCardState extends State<PostCard> {
                   style: TextButton.styleFrom(
                     foregroundColor:
                         following ? SocialUi.mute : AppColors.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    minimumSize: const Size(0, 36),
                     textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       fontSize: 13,
+                      letterSpacing: -0.1,
                     ),
                   ),
-                  child: Text(following ? 'Following' : '+ Follow'),
+                  child: Text(following ? 'Following' : 'Follow'),
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Text(
               '${post['content'] ?? post['body'] ?? ''}',
               style: SocialUi.bodyStyle,
@@ -124,17 +128,20 @@ class _PostCardState extends State<PostCard> {
               child: LoadingImage(src: media.first, fit: BoxFit.cover),
             ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Row(
               children: [
-                const Icon(Icons.thumb_up_alt,
-                    size: 14, color: AppColors.primary),
-                const SizedBox(width: 6),
-                Text(
-                  '$_likeCount',
-                  style: SocialUi.metaStyle,
-                ),
-                const Spacer(),
+                if (_likeCount > 0) ...[
+                  Icon(
+                    Icons.favorite_rounded,
+                    size: 14,
+                    color: AppColors.primary.withValues(alpha: 0.85),
+                  ),
+                  const SizedBox(width: 5),
+                  Text('$_likeCount', style: SocialUi.metaStyle),
+                  const Spacer(),
+                ] else
+                  const Spacer(),
                 InkWell(
                   onTap: () => setState(() => _showComments = !_showComments),
                   child: Text(
@@ -145,41 +152,58 @@ class _PostCardState extends State<PostCard> {
               ],
             ),
           ),
-          const Divider(height: 1, color: SocialUi.hairline),
-          Row(
-            children: [
-              _Action(
-                icon: liked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
-                label: liked ? 'Liked' : 'Like',
-                active: liked,
-                onTap: () async {
-                  final result = await activity.toggleLike('${post['id']}');
-                  if (result != null && mounted) {
-                    setState(() {
-                      _likeCount = int.tryParse(
-                            '${result['likeCount'] ?? _likeCount}',
-                          ) ??
-                          (liked ? _likeCount - 1 : _likeCount + 1);
-                    });
-                  }
-                },
-              ),
-              _Action(
-                icon: Icons.chat_bubble_outline,
-                label: 'Comment',
-                onTap: () => setState(() => _showComments = !_showComments),
-              ),
-              _Action(
-                icon: Icons.share_outlined,
-                label: 'Share',
-                onTap: () =>
-                    Share.share('${post['content'] ?? 'GemBook post'}'),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+            child: Row(
+              children: [
+                _Action(
+                  icon: liked
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  label: liked ? 'Liked' : 'Like',
+                  active: liked,
+                  onTap: () async {
+                    final result = await activity.toggleLike('${post['id']}');
+                    if (result != null && mounted) {
+                      setState(() {
+                        _likeCount = int.tryParse(
+                              '${result['likeCount'] ?? _likeCount}',
+                            ) ??
+                            (liked ? _likeCount - 1 : _likeCount + 1);
+                      });
+                    }
+                  },
+                ),
+                _Action(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Comment',
+                  onTap: () => setState(() => _showComments = !_showComments),
+                ),
+                _Action(
+                  icon: Icons.ios_share_rounded,
+                  label: 'Share',
+                  onTap: () {
+                    final content =
+                        '${post['content'] ?? 'GemBook post'}'.trim();
+                    final preview = content.length > 120
+                        ? '${content.substring(0, 117)}…'
+                        : content;
+                    showItemShareSheet(
+                      context,
+                      title: preview.isEmpty ? 'GemBook post' : preview,
+                      url: postShareUrl('${post['id']}'),
+                      message: preview.isEmpty
+                          ? 'Check out this post on GemBook'
+                          : preview,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
           if (_showComments)
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: CommentSection(postId: '${post['id']}'),
             ),
         ],
@@ -207,6 +231,7 @@ class _Action extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
@@ -214,9 +239,16 @@ class _Action extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: color),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: SocialUi.actionLabelStyle.copyWith(color: color),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SocialUi.actionLabelStyle.copyWith(
+                    color: color,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),

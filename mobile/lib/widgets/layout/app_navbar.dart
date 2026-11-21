@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +8,7 @@ import '../../services/api_client.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/social_ui.dart';
 import '../../utils/images.dart';
+import '../ui/brand_mark.dart';
 import '../ui/loading_image.dart';
 import 'saved_gems_panel.dart';
 
@@ -94,50 +94,32 @@ class _AppNavbarState extends State<AppNavbar> {
         .length;
     final savedCount = activity.saves.length + marketplaceFollows;
     final avatarSrc = resolveAvatar(auth.userProfile?['photoURL']);
-    final initial = (auth.userProfile?['displayName'] ??
-            auth.userProfile?['email'] ??
-            'U')
-        .toString()
-        .trim();
-    final letter = initial.isNotEmpty ? initial[0].toUpperCase() : 'U';
 
     return Material(
       color: Colors.white,
       elevation: 0,
       child: DecoratedBox(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          border: const Border(bottom: BorderSide(color: SocialUi.hairline)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border(bottom: BorderSide(color: SocialUi.hairline)),
         ),
         child: SafeArea(
           bottom: false,
           child: SizedBox(
             height: 56,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
                 children: [
                   InkWell(
                     onTap: widget.onLogoTap ?? () => context.go('/'),
                     borderRadius: BorderRadius.circular(10),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 2,
                         vertical: 6,
                       ),
-                      child: SvgPicture.asset(
-                        kSampleLogoAsset,
-                        height: 32,
-                        fit: BoxFit.contain,
-                        semanticsLabel: 'GemBook menu',
-                      ),
+                      child: BrandLogo(height: 28),
                     ),
                   ),
                   const Spacer(),
@@ -164,7 +146,7 @@ class _AppNavbarState extends State<AppNavbar> {
                     onTap: _openMessages,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 4, right: 2),
+                    padding: const EdgeInsets.only(left: 6, right: 2),
                     child: InkWell(
                       onTap: _openProfile,
                       customBorder: const CircleBorder(),
@@ -175,23 +157,12 @@ class _AppNavbarState extends State<AppNavbar> {
                           shape: BoxShape.circle,
                           color: AppColors.slate100,
                           border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.25),
-                            width: 1.5,
+                            color: SocialUi.hairline,
+                            width: 1,
                           ),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: avatarSrc.isNotEmpty
-                            ? LoadingImage(src: avatarSrc, fit: BoxFit.cover)
-                            : Center(
-                                child: Text(
-                                  letter,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
+                        child: LoadingImage(src: avatarSrc, fit: BoxFit.cover),
                       ),
                     ),
                   ),
@@ -304,14 +275,17 @@ class _NotificationsSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
               child: Row(
                 children: [
-                  const Text(
-                    'Notifications',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
+                  const Expanded(
+                    child: Text(
+                      'Notifications',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   TextButton(
                     onPressed: () {
                       apiPost('/api/notifications/read', {'userId': userId});

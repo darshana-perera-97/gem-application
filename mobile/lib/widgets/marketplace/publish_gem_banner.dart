@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/add_listing_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/social_ui.dart';
 import '../../utils/format.dart';
 import '../../utils/images.dart';
 import '../ui/loading_image.dart';
@@ -13,7 +14,7 @@ class PublishGemBanner extends StatefulWidget {
   const PublishGemBanner({
     super.key,
     required this.listings,
-    this.height = 180,
+    this.height = 168,
   });
 
   final List<dynamic> listings;
@@ -62,19 +63,8 @@ class _PublishGemBannerState extends State<PublishGemBanner> {
     return Container(
       height: widget.height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1A0B24), AppColors.primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(SocialUi.cardRadius),
+        color: AppColors.slate900,
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -82,41 +72,44 @@ class _PublishGemBannerState extends State<PublishGemBanner> {
         children: [
           if (image != null && image.isNotEmpty)
             Opacity(
-              opacity: 0.45,
+              opacity: 0.4,
               child: LoadingImage(src: image, fit: BoxFit.cover),
             ),
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.black.withValues(alpha: 0.55),
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.65),
+                  AppColors.slate900.withValues(alpha: 0.75),
+                  AppColors.primary.withValues(alpha: 0.35),
+                  AppColors.slate900.withValues(alpha: 0.85),
                 ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'PUBLISH YOUR GEM',
+                      Text(
+                        'List a gem',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: AppColors.accent,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
+                          color: AppColors.accent.withValues(alpha: 0.95),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         listing == null
                             ? 'Reach verified dealers worldwide'
@@ -125,38 +118,49 @@ class _PublishGemBannerState extends State<PublishGemBanner> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
+                          height: 1.2,
                         ),
                       ),
                       if (listing != null) ...[
                         const SizedBox(height: 6),
                         Text(
                           '${vendor['companyName'] ?? vendor['displayName'] ?? 'Dealer'} · ${formatCurrency(listing['price'], currency: '${listing['currency'] ?? 'LKR'}')}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.75),
+                            color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () =>
                       context.read<AddListingProvider>().openAddListing(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppColors.slate900,
+                    elevation: 0,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 14),
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius:
+                          BorderRadius.circular(SocialUi.buttonRadius),
                     ),
                   ),
-                  child: const Text('List Gem'),
+                  child: const Text(
+                    'List Gem',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
             ),

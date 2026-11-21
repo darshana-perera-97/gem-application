@@ -6,6 +6,7 @@ import '../../providers/activity_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_client.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/social_ui.dart';
 import '../../utils/images.dart';
 import '../ui/loading_image.dart';
 
@@ -85,18 +86,14 @@ class _SavedGemsPanelState extends State<SavedGemsPanel> {
             padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
             child: Row(
               children: [
-                const Text(
+                Text(
                   'Saved',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.slate900,
-                  ),
+                  style: SocialUi.pageTitleStyle.copyWith(fontSize: 22),
                 ),
                 const Spacer(),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close_rounded, color: SocialUi.mute),
                 ),
               ],
             ),
@@ -114,7 +111,9 @@ class _SavedGemsPanelState extends State<SavedGemsPanel> {
           const SizedBox(height: 8),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
                 : _tab == 'gems'
                     ? _buildGems()
                     : _buildVendors(),
@@ -130,13 +129,16 @@ class _SavedGemsPanelState extends State<SavedGemsPanel> {
       label: Text(label),
       selected: active,
       onSelected: (_) => setState(() => _tab = id),
-      selectedColor: AppColors.slate900,
+      selectedColor: AppColors.primary,
       labelStyle: TextStyle(
         color: active ? Colors.white : AppColors.slate600,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         fontSize: 12,
       ),
       backgroundColor: AppColors.slate50,
+      side: BorderSide(
+        color: active ? AppColors.primary : SocialUi.hairline,
+      ),
     );
   }
 

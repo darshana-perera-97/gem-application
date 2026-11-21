@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/social_ui.dart';
-import '../../utils/images.dart';
+import '../ui/brand_mark.dart';
 
 /// Shared side navigation matching the web Layout sidebar.
 class AppSideNav extends StatelessWidget {
@@ -45,14 +44,7 @@ class AppSideNav extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, SocialUi.sectionGap),
                 child: Row(
                   children: [
-                    SvgPicture.asset(
-                      kSampleLogoAsset,
-                      height: 28,
-                      fit: BoxFit.contain,
-                      semanticsLabel: 'GemBook',
-                    ),
-                    const SizedBox(width: 10),
-                    Text('GemBook', style: SocialUi.nameStyle),
+                    const BrandLogo(height: 28),
                     const Spacer(),
                     IconButton(
                       visualDensity: VisualDensity.compact,
@@ -63,34 +55,42 @@ class AppSideNav extends StatelessWidget {
                 ),
               ),
             ],
-            _nav(context, Icons.home_outlined, 'Feed', '/'),
-            _nav(context, Icons.shopping_bag_outlined, 'Marketplace',
-                '/marketplace'),
-            _nav(context, Icons.storefront_outlined, 'Vendors', '/vendors'),
-            _nav(context, Icons.groups_outlined, 'Community', '/community'),
-            _nav(context, Icons.newspaper_outlined, 'News', '/news'),
-            _nav(context, Icons.event_outlined, 'Events', '/events'),
-            const SizedBox(height: SocialUi.sectionGap),
-            const Divider(height: 1, color: SocialUi.hairline),
-            const SizedBox(height: SocialUi.sectionGap),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'PROFESSIONAL',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  color: AppColors.slate400,
-                ),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _nav(context, Icons.home_outlined, 'Feed', '/'),
+                  _nav(context, Icons.shopping_bag_outlined, 'Marketplace',
+                      '/marketplace'),
+                  _nav(context, Icons.storefront_outlined, 'Vendors',
+                      '/vendors'),
+                  _nav(context, Icons.groups_outlined, 'Community',
+                      '/community'),
+                  const SizedBox(height: SocialUi.sectionGap),
+                  const Divider(height: 1, color: SocialUi.hairline),
+                  const SizedBox(height: SocialUi.sectionGap),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Account',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.1,
+                        color: AppColors.slate400,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: SocialUi.feedGap),
+                  _nav(context, Icons.dashboard_outlined, 'Dashboard',
+                      '/vendor/dashboard'),
+                  _nav(context, Icons.diamond_outlined, 'My Gems', '/my-gems'),
+                  _nav(context, Icons.person_outline, 'My Profile', '/profile'),
+                  _nav(context, Icons.chat_bubble_outline, 'Messages',
+                      '/messages'),
+                ],
               ),
             ),
-            const SizedBox(height: SocialUi.feedGap),
-            _nav(context, Icons.dashboard_outlined, 'Dashboard',
-                '/vendor/dashboard'),
-            _nav(context, Icons.diamond_outlined, 'My Gems', '/my-gems'),
-            _nav(context, Icons.person_outline, 'My Profile', '/profile'),
-            _nav(context, Icons.chat_bubble_outline, 'Messages', '/messages'),
           ],
         ),
       ),
@@ -101,7 +101,7 @@ class AppSideNav extends StatelessWidget {
         width: 256,
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(right: BorderSide(color: AppColors.slate200)),
+          border: Border(right: BorderSide(color: SocialUi.hairline)),
         ),
         child: body,
       );
@@ -123,29 +123,30 @@ class AppSideNav extends StatelessWidget {
     final active = location == path ||
         (path != '/' && location.startsWith(path));
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 2),
       child: Material(
         color: active ? AppColors.primarySoft : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: () => _go(context, path),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
                 Icon(
                   icon,
-                  size: 18,
-                  color: active ? AppColors.primary : AppColors.slate600,
+                  size: 20,
+                  color: active ? AppColors.primary : AppColors.slate500,
                 ),
                 const SizedBox(width: 12),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: active ? AppColors.primary : AppColors.slate600,
+                    fontSize: 14,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                    letterSpacing: -0.1,
+                    color: active ? AppColors.primary : AppColors.slate700,
                   ),
                 ),
               ],

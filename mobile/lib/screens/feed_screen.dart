@@ -10,6 +10,7 @@ import '../widgets/layout/page_chrome.dart';
 import '../widgets/marketplace/listing_card.dart';
 import '../widgets/social/create_post.dart';
 import '../widgets/social/post_card.dart';
+import '../widgets/social/reels_strip.dart';
 import '../widgets/ui/loading_image.dart';
 import '../widgets/ui/screen_loader.dart';
 import '../widgets/vendors/vendor_leaderboard_modal.dart';
@@ -91,6 +92,10 @@ class _FeedScreenState extends State<FeedScreen> {
         .whereType<Map>()
         .map((e) => Map<String, dynamic>.from(e))
         .toList();
+    final shorts = (_catalog?['shorts'] as List? ?? [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
 
     final items = <Map<String, dynamic>>[
       ...posts.map((p) => {'type': 'post', 'data': p}),
@@ -123,6 +128,7 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
           ),
         CreatePost(onCreated: _load),
+        if (shorts.isNotEmpty) ReelsStrip(shorts: shorts),
         const SizedBox(height: SocialUi.feedGap),
         if (items.isEmpty)
           const PageEmpty(
@@ -372,17 +378,12 @@ class _FeedScreenState extends State<FeedScreen> {
     Color? borderColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(SocialUi.pagePad),
       decoration: BoxDecoration(
         color: color ?? Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor ?? AppColors.gray100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(SocialUi.cardRadius),
+        border: Border.all(color: borderColor ?? SocialUi.hairline),
+        boxShadow: SocialUi.softShadow,
       ),
       child: child,
     );

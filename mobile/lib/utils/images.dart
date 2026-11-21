@@ -1,6 +1,7 @@
 /// Brand mark and image-path helpers. Mirrors frontend/src/constants/sampleImages.js
 
 const String kSampleLogoAsset = 'assets/images/gembook-logo.svg';
+const String kDefaultAvatarAsset = 'assets/images/default-avatar.svg';
 const String kDefaultNewsImage =
     'assets/images/gemstone_collection_luxury_1781701065808.jpg';
 
@@ -19,7 +20,12 @@ String resolveImage(dynamic url) {
   return '';
 }
 
-String resolveAvatar(dynamic url) => resolveImage(url);
+/// Avatar URL, or the shared default guest / no-photo avatar asset.
+String resolveAvatar(dynamic url) {
+  final resolved = resolveImage(url);
+  return resolved.isEmpty ? kDefaultAvatarAsset : resolved;
+}
+
 String resolveGem(dynamic url) => resolveImage(url);
 String resolveCover(dynamic url) => resolveImage(url);
 

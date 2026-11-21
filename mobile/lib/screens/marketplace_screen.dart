@@ -197,8 +197,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               crossAxisCount: crossAxisCount,
               mainAxisSpacing: SocialUi.itemGap,
               crossAxisSpacing: SocialUi.itemGap,
-              // Tall enough for image + price/title/location.
-              childAspectRatio: 0.68,
+              // Square image + footer (~price/title/meta).
+              childAspectRatio: 0.62,
             ),
             itemBuilder: (_, i) => ListingCard(
               listing: chunk[i],
@@ -375,7 +375,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(SocialUi.cardRadius),
+                borderRadius: BorderRadius.circular(SocialUi.searchRadius),
+                border: Border.all(color: SocialUi.hairline),
               ),
               child: Row(
                 children: [
@@ -430,7 +431,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ),
               child: const Text(
                 'See more',
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ),

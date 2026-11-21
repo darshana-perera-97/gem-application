@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../providers/activity_provider.dart';
 import '../providers/add_listing_provider.dart';
@@ -12,6 +11,7 @@ import '../theme/app_colors.dart';
 import '../theme/social_ui.dart';
 import '../utils/format.dart';
 import '../utils/images.dart';
+import '../utils/share_item.dart';
 import '../widgets/ui/loading_image.dart';
 import '../widgets/ui/screen_loader.dart';
 
@@ -280,7 +280,12 @@ class _ProductScreenState extends State<ProductScreen> {
                         ),
                         const SizedBox(width: 8),
                         IconButton(
-                          onPressed: () => Share.share(title),
+                          onPressed: () => showItemShareSheet(
+                            context,
+                            title: title,
+                            url: listingShareUrl('${listing['id']}'),
+                            message: 'Check out $title on GemBook',
+                          ),
                           style: IconButton.styleFrom(
                             backgroundColor: SocialUi.feedCanvas,
                           ),
@@ -307,59 +312,51 @@ class _ProductScreenState extends State<ProductScreen> {
         Container(
           padding: const EdgeInsets.fromLTRB(
             SocialUi.pagePad,
-            12,
+            14,
             SocialUi.pagePad,
-            12,
+            14,
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            border: const Border(top: BorderSide(color: SocialUi.hairline)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 12,
-                offset: const Offset(0, -4),
-              ),
-            ],
+            border: Border(top: BorderSide(color: SocialUi.hairline)),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Price',
-                      style: TextStyle(fontSize: 12, color: SocialUi.mute),
-                    ),
-                    Text(
-                      price,
-                      style: SocialUi.priceStyle.copyWith(fontSize: 18),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: isOwner
-                      ? () => context
-                          .read<AddListingProvider>()
-                          .openAddListing('${listing['id']}')
-                      : () => _messageSeller(auth, vendor, listing, title),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(SocialUi.buttonRadius),
-                    ),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Price',
+                        style: TextStyle(fontSize: 12, color: SocialUi.mute),
+                      ),
+                      Text(
+                        price,
+                        style: SocialUi.priceStyle.copyWith(fontSize: 18),
+                      ),
+                    ],
                   ),
-                  child: Text(isOwner ? 'Edit listing' : 'Send inquiry'),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: isOwner
+                        ? () => context
+                            .read<AddListingProvider>()
+                            .openAddListing('${listing['id']}')
+                        : () => _messageSeller(auth, vendor, listing, title),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    child: Text(isOwner ? 'Edit listing' : 'Send inquiry'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

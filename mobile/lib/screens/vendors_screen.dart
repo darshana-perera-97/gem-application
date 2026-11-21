@@ -56,20 +56,32 @@ class _VendorsScreenState extends State<VendorsScreen> {
       grouped.putIfAbsent(key, () => []).add(vendor);
     }
 
-    const cols = 2;
-
     Widget gridFor(List<Map<String, dynamic>> items) {
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: items.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: cols,
-          mainAxisSpacing: SocialUi.itemGap,
-          crossAxisSpacing: SocialUi.itemGap,
-          childAspectRatio: 0.72,
-        ),
-        itemBuilder: (_, i) => _vendorCard(items[i]),
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final cols = width >= 720 ? 3 : 2;
+          final gap = SocialUi.itemGap;
+          final cardWidth = (width - gap * (cols - 1)) / cols;
+          // Fixed height keeps cover + avatar + text stable across devices.
+          const cardHeight = 218.0;
+
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              mainAxisSpacing: gap,
+              crossAxisSpacing: gap,
+              mainAxisExtent: cardHeight,
+            ),
+            itemBuilder: (_, i) => _VendorCard(
+              vendor: items[i],
+              width: cardWidth,
+            ),
+          );
+        },
       );
     }
 
@@ -119,9 +131,10 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   child: Text(
                     entry.key,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: -0.2,
+                      color: AppColors.slate700,
                     ),
                   ),
                 ),
@@ -130,12 +143,26 @@ class _VendorsScreenState extends State<VendorsScreen> {
       ],
     );
   }
+}
 
-  Widget _vendorCard(Map<String, dynamic> vendor) {
+class _VendorCard extends StatelessWidget {
+  const _VendorCard({
+    required this.vendor,
+    required this.width,
+  });
+
+  final Map<String, dynamic> vendor;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
     final verified = vendor['verified'] == true;
-    final rating = (num.tryParse('${vendor['rating']}') ?? 0).toStringAsFixed(1);
-    final gems = '${vendor['listingCount'] ?? 0}';
-    final reviews = '${vendor['reviewCount'] ?? 0}';
+    final rating =
+        (num.tryParse('${vendor['rating']}') ?? 0).toStringAsFixed(1);
+    final gems = int.tryParse('${vendor['listingCount'] ?? 0}') ?? 0;
+    final reviews = int.tryParse('${vendor['reviewCount'] ?? 0}') ?? 0;
+    final name = '${vendor['companyName'] ?? 'Dealer'}';
+    final location = '${vendor['location'] ?? 'Sri Lanka'}';
 
     return Material(
       color: Colors.transparent,
@@ -149,35 +176,54 @@ class _VendorsScreenState extends State<VendorsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                height: 76,
+                height: 88,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
                     Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(SocialUi.cardRadius),
+                      child: ColoredBox(
+                        color: AppColors.slate100,
+                        child: LoadingImage(
+                          src: resolveCover(vendor['coverImage']),
+                          fit: BoxFit.cover,
                         ),
-                        child: ColoredBox(
-                          color: AppColors.primarySoft,
-                          child: LoadingImage(
-                            src: resolveCover(vendor['coverImage']),
-                            fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 36,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.18),
+                            ],
                           ),
                         ),
                       ),
                     ),
                     Positioned(
-                      left: SocialUi.itemGap,
-                      bottom: -22,
+                      left: 12,
+                      bottom: -20,
                       child: Container(
-                        width: 48,
-                        height: 48,
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: SocialUi.softShadow,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: LoadingImage(
@@ -191,61 +237,97 @@ class _VendorsScreenState extends State<VendorsScreen> {
                         top: 8,
                         right: 8,
                         child: Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: SocialUi.softShadow,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
                           ),
-                          child: const Icon(
-                            Icons.verified_rounded,
-                            size: 14,
-                            color: AppColors.success,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.verified_rounded,
+                                size: 12,
+                                color: AppColors.success,
+                              ),
+                              SizedBox(width: 3),
+                              Text(
+                                'Verified',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.slate800,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    SocialUi.itemGap,
-                    0,
-                    SocialUi.itemGap,
-                    SocialUi.itemGap,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${vendor['companyName']}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
+              const SizedBox(height: 26),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                        color: AppColors.slate900,
+                        height: 1.2,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        vendor['location'] != null
-                            ? '${vendor['location']}'
-                            : 'Sri Lanka',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.place_outlined,
+                          size: 12,
                           color: SocialUi.mute,
                         ),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: SocialUi.mute,
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
                       ),
-                      const Spacer(),
-                      Row(
+                      decoration: BoxDecoration(
+                        color: AppColors.slate50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
                         children: [
-                          const Icon(Icons.star_rounded,
-                              size: 14, color: AppColors.warning),
-                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.star_rounded,
+                            size: 13,
+                            color: Color(0xFFFBBF24),
+                          ),
+                          const SizedBox(width: 3),
                           Text(
                             rating,
                             style: const TextStyle(
@@ -254,17 +336,18 @@ class _VendorsScreenState extends State<VendorsScreen> {
                               color: AppColors.slate800,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '$reviews',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: SocialUi.mute,
+                          if (reviews > 0) ...[
+                            Text(
+                              ' ($reviews)',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: SocialUi.mute,
+                              ),
                             ),
-                          ),
+                          ],
                           const Spacer(),
                           Text(
-                            '$gems gems',
+                            gems == 1 ? '1 gem' : '$gems gems',
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -273,8 +356,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/activity_provider.dart';
@@ -11,6 +10,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/social_ui.dart';
 import '../../utils/format.dart';
 import '../../utils/images.dart';
+import '../../utils/share_item.dart';
 import '../ui/loading_image.dart';
 
 enum ListingCardVariant { grid, list, feed }
@@ -99,7 +99,13 @@ class _ListingCardState extends State<ListingCard> {
   }
 
   Future<void> _share() async {
-    await Share.share(_title, subject: 'GemBook · ${listing['id']}');
+    final id = '${listing['id']}';
+    await showItemShareSheet(
+      context,
+      title: _title,
+      url: listingShareUrl(id),
+      message: 'Check out $_title on GemBook',
+    );
   }
 
   Future<void> _message() async {
@@ -170,180 +176,203 @@ class _ListingCardState extends State<ListingCard> {
             border: Border.all(color: SocialUi.hairline.withValues(alpha: 0.8)),
           ),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ColoredBox(
-                    color: SocialUi.feedCanvas,
-                    child: _images.isEmpty
-                        ? const Center(
-                            child: Icon(Icons.diamond_outlined,
-                                color: SocialUi.mute, size: 36),
-                          )
-                        : PageView.builder(
-                            itemCount: _images.length,
-                            onPageChanged: (i) =>
-                                setState(() => _activeIndex = i),
-                            itemBuilder: (_, i) => ColorFiltered(
-                              colorFilter: _isSold
-                                  ? const ColorFilter.matrix(<double>[
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0, 0, 0, 0.85, 0,
-                                    ])
-                                  : const ColorFilter.mode(
-                                      Colors.transparent,
-                                      BlendMode.dst,
-                                    ),
-                              child: LoadingImage(
-                                src: _images[i],
-                                fit: BoxFit.cover,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // AspectRatio (not Expanded) so this card also works in ListViews
+              // with unbounded height (e.g. seller profile Collection).
+              AspectRatio(
+                aspectRatio: 1,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ColoredBox(
+                      color: SocialUi.feedCanvas,
+                      child: _images.isEmpty
+                          ? const Center(
+                              child: Icon(Icons.diamond_outlined,
+                                  color: SocialUi.mute, size: 36),
+                            )
+                          : PageView.builder(
+                              itemCount: _images.length,
+                              onPageChanged: (i) =>
+                                  setState(() => _activeIndex = i),
+                              itemBuilder: (_, i) => ColorFiltered(
+                                colorFilter: _isSold
+                                    ? const ColorFilter.matrix(<double>[
+                                        0.2126, 0.7152, 0.0722, 0, 0,
+                                        0.2126, 0.7152, 0.0722, 0, 0,
+                                        0.2126, 0.7152, 0.0722, 0, 0,
+                                        0, 0, 0, 0.85, 0,
+                                      ])
+                                    : const ColorFilter.mode(
+                                        Colors.transparent,
+                                        BlendMode.dst,
+                                      ),
+                                child: LoadingImage(
+                                  src: _images[i],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                    ),
+                    if (_isSold)
+                      Center(
+                        child: Transform.rotate(
+                          angle: -0.18,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: Colors.white, width: 3),
+                            ),
+                            child: const Text(
+                              'SOLD',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 22,
+                                letterSpacing: 2,
+                                shadows: [
+                                  Shadow(
+                                      blurRadius: 8, color: Colors.black54),
+                                ],
                               ),
                             ),
                           ),
-                  ),
-                  if (_isSold)
-                    Center(
-                      child: Transform.rotate(
-                        angle: -0.18,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white, width: 3),
-                          ),
-                          child: const Text(
-                            'SOLD',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                              letterSpacing: 2,
-                              shadows: [
-                                Shadow(blurRadius: 8, color: Colors.black54),
-                              ],
-                            ),
-                          ),
                         ),
                       ),
-                    ),
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_featured && !_isSold) _badge('Premium', const Color(0xFFFBBF24)),
-                        if (_certified) ...[
-                          if (_featured && !_isSold) const SizedBox(height: 4),
-                          _badge('Certified', AppColors.primary, icon: Icons.verified),
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_featured && !_isSold)
+                            _badge('Premium', const Color(0xFFFBBF24)),
+                          if (_certified) ...[
+                            if (_featured && !_isSold)
+                              const SizedBox(height: 4),
+                            _badge('Certified', AppColors.primary,
+                                icon: Icons.verified),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  if (!_isSold)
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: _circleIcon(
-                        onTap: _toggleSave,
-                        icon: saved ? Icons.favorite : Icons.favorite_border,
-                        color: saved
-                            ? const Color(0xFFEF4444)
-                            : AppColors.slate700,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _circleIcon(
+                            onTap: _share,
+                            icon: Icons.ios_share_rounded,
+                            color: AppColors.slate700,
+                          ),
+                          if (!_isSold) ...[
+                            const SizedBox(width: 6),
+                            _circleIcon(
+                              onTap: _toggleSave,
+                              icon: saved
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: saved
+                                  ? const Color(0xFFEF4444)
+                                  : AppColors.slate700,
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                  if (_images.length > 1)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 8,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          _images.length.clamp(0, 5),
-                          (i) => Container(
-                            width: i == _activeIndex ? 14 : 5,
-                            height: 5,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              color: i == _activeIndex
-                                  ? Colors.white
-                                  : Colors.white60,
-                              borderRadius: BorderRadius.circular(999),
+                    if (_images.length > 1)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 8,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _images.length.clamp(0, 5),
+                            (i) => Container(
+                              width: i == _activeIndex ? 14 : 5,
+                              height: 5,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              decoration: BoxDecoration(
+                                color: i == _activeIndex
+                                    ? Colors.white
+                                    : Colors.white60,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isSold ? 'Sold' : _priceLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: _isSold ? SocialUi.mute : AppColors.slate900,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isSold ? 'Sold' : _priceLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _isSold
+                          ? SocialUi.priceStyle.copyWith(color: SocialUi.mute)
+                          : SocialUi.priceStyle.copyWith(fontSize: 15),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      height: 1.25,
-                      color: AppColors.slate800,
+                    const SizedBox(height: 4),
+                    Text(
+                      _title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        height: 1.3,
+                        letterSpacing: -0.1,
+                        color: AppColors.slate800,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.place_outlined,
-                          size: 12, color: SocialUi.mute),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: Text(
-                          _origin.isEmpty ? 'Sri Lanka' : _origin,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.place_outlined,
+                            size: 12, color: SocialUi.mute),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            _origin.isEmpty ? 'Sri Lanka' : _origin,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: SocialUi.mute,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _weightLabel,
                           style: const TextStyle(
                             fontSize: 11,
+                            fontWeight: FontWeight.w500,
                             color: SocialUi.mute,
                           ),
                         ),
-                      ),
-                      Text(
-                        _weightLabel,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: SocialUi.mute,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
@@ -358,7 +387,7 @@ class _ListingCardState extends State<ListingCard> {
       child: InkWell(
         onTap: () => context.push('/listings/${listing['id']}'),
         child: SizedBox(
-          height: 120,
+          height: 136,
           child: Row(
             children: [
               SizedBox(
@@ -467,6 +496,12 @@ class _ListingCardState extends State<ListingCard> {
                           if (widget.ownerMode)
                             _ownerMiniActions()
                           else ...[
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              onPressed: _share,
+                              icon: const Icon(Icons.ios_share_rounded,
+                                  size: 18, color: SocialUi.mute),
+                            ),
                             if (!_isSold)
                               IconButton(
                                 visualDensity: VisualDensity.compact,
@@ -554,6 +589,13 @@ class _ListingCardState extends State<ListingCard> {
                           Text(_origin, style: SocialUi.metaStyle),
                       ],
                     ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _share,
+                  icon: const Icon(
+                    Icons.ios_share_rounded,
+                    color: SocialUi.mute,
                   ),
                 ),
                 if (!_isSold)
@@ -653,12 +695,17 @@ class _ListingCardState extends State<ListingCard> {
                     ],
                   ),
                 ),
-                Text(
-                  _isSold ? 'Sold' : _priceLabel,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: _isSold ? SocialUi.mute : AppColors.accent,
+                Flexible(
+                  child: Text(
+                    _isSold ? 'Sold' : _priceLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: _isSold ? SocialUi.mute : AppColors.accent,
+                    ),
                   ),
                 ),
               ],
@@ -735,7 +782,14 @@ class _ListingCardState extends State<ListingCard> {
             children: [
               Icon(icon, size: 18, color: SocialUi.mute),
               const SizedBox(width: 6),
-              Text(label, style: SocialUi.actionLabelStyle),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SocialUi.actionLabelStyle,
+                ),
+              ),
             ],
           ),
         ),
@@ -745,32 +799,25 @@ class _ListingCardState extends State<ListingCard> {
 
   Widget _badge(String label, Color color, {IconData? icon}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        color: color.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 10, color: Colors.white),
-            const SizedBox(width: 3),
+            Icon(icon, size: 11, color: Colors.white),
+            const SizedBox(width: 4),
           ],
           Text(
-            label.toUpperCase(),
+            label,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.6,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.1,
             ),
           ),
         ],
@@ -780,10 +827,10 @@ class _ListingCardState extends State<ListingCard> {
 
   Widget _chip(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: SocialUi.feedCanvas,
-        borderRadius: BorderRadius.circular(6),
+        color: AppColors.slate50,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -794,7 +841,7 @@ class _ListingCardState extends State<ListingCard> {
             label,
             style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: SocialUi.mute,
             ),
           ),
@@ -809,10 +856,9 @@ class _ListingCardState extends State<ListingCard> {
     required Color color,
   }) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.92),
+      color: Colors.white.withValues(alpha: 0.94),
       shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: Colors.black26,
+      elevation: 0,
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,

@@ -4,9 +4,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActivity } from '../../contexts/ActivityContext';
-import { SAMPLE_LOGO, resolveAvatar } from '../../constants/sampleImages';
+import { resolveAvatar } from '../../constants/sampleImages';
 import { apiGet, apiPost } from '../../lib/api';
 import { LoadingImage } from '../ui/LoadingImage';
+import { BrandGemIcon } from '../ui/BrandGemIcon';
 import { SavedGemsPanel } from './SavedGemsPanel';
 
 export const Navbar = () => {
@@ -63,13 +64,13 @@ export const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-50 flex items-center justify-between px-4 md:px-6">
       <div className="flex items-center gap-8">
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="h-8 md:h-10 w-auto group-hover:scale-105 transition-transform">
-            <LoadingImage 
-              src={SAMPLE_LOGO} 
-              alt="GemBook Logo" 
-              className="h-full w-auto object-contain"
-            />
-          </div>
+          <BrandGemIcon
+            size={28}
+            className="text-primary group-hover:scale-105 transition-transform"
+          />
+          <span className="text-lg md:text-xl font-bold tracking-tight text-slate-900">
+            GemBook
+          </span>
         </Link>
         
         <form

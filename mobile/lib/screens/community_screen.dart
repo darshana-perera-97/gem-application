@@ -98,15 +98,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           height: 48,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppColors.primary, AppColors.accent],
-                            ),
+                            color: AppColors.primarySoft,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Text(
                             '${group['name'] ?? '?'}'[0].toUpperCase(),
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w700,
                               fontSize: 18,
                             ),
@@ -129,21 +127,23 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             ],
                           ),
                         ),
-                        joined
-                            ? OutlinedButton(
-                                onPressed: () =>
-                                    activity.toggleGroup('${group['id']}'),
-                                child: const Text('Joined'),
-                              )
-                            : ElevatedButton(
-                                onPressed: () =>
-                                    activity.toggleGroup('${group['id']}'),
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 10),
+                        Flexible(
+                          child: joined
+                              ? OutlinedButton(
+                                  onPressed: () =>
+                                      activity.toggleGroup('${group['id']}'),
+                                  child: const Text('Joined'),
+                                )
+                              : ElevatedButton(
+                                  onPressed: () =>
+                                      activity.toggleGroup('${group['id']}'),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 10),
+                                  ),
+                                  child: const Text('Join'),
                                 ),
-                                child: const Text('Join'),
-                              ),
+                        ),
                       ],
                     ),
                   );
@@ -160,41 +160,40 @@ class _CommunityScreenState extends State<CommunityScreen> {
           ),
         ),
         const SizedBox(height: SocialUi.sectionGap),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(SocialUi.pagePad),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.accent],
-            ),
-            borderRadius: BorderRadius.circular(SocialUi.cardRadius),
-            boxShadow: SocialUi.primaryShadow,
-          ),
+        PageCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.person_add_alt_1_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: 14),
               const Text(
                 'Build your network',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.slate900,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
                 ),
               ),
               const SizedBox(height: 6),
               const Text(
                 'Invite contacts to join GemBook discussions.',
-                style: TextStyle(color: Colors.white70, height: 1.35),
+                style: TextStyle(color: SocialUi.mute, height: 1.4),
               ),
               const SizedBox(height: SocialUi.sectionGap),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.primary,
-                  elevation: 0,
-                ),
                 onPressed: () => setState(() => _inviteOpen = !_inviteOpen),
                 child: Text(_inviteOpen ? 'Close' : 'Invite contacts'),
               ),
@@ -202,18 +201,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 const SizedBox(height: SocialUi.sectionGap),
                 TextField(
                   controller: _inviteEmail,
-                  decoration: const InputDecoration(
-                    hintText: 'email@example.com',
-                    filled: true,
-                    fillColor: Colors.white,
+                  decoration: SocialUi.searchDecoration(
+                    hint: 'email@example.com',
+                    prefixIcon: const Icon(
+                      Icons.mail_outline_rounded,
+                      size: 20,
+                      color: SocialUi.mute,
+                    ),
                   ),
                 ),
                 const SizedBox(height: SocialUi.feedGap),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.slate900,
-                    foregroundColor: Colors.white,
-                  ),
+                OutlinedButton(
                   onPressed: () async {
                     if (!activity.ensureUser()) return;
                     try {
@@ -236,7 +234,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     padding: const EdgeInsets.only(top: SocialUi.feedGap),
                     child: Text(
                       _inviteStatus,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                        color: AppColors.slate600,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
               ],

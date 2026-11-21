@@ -116,7 +116,7 @@ class _CommentSectionState extends State<CommentSection> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: SocialUi.feedCanvas,
+                        color: AppColors.slate50,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
@@ -124,14 +124,16 @@ class _CommentSectionState extends State<CommentSection> {
                         children: [
                           Text(
                             '${c['authorName'] ?? 'Member'}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: SocialUi.nameStyle.copyWith(fontSize: 12),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             '${c['content'] ?? ''}',
-                            style: const TextStyle(fontSize: 13, height: 1.35),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.4,
+                              color: AppColors.slate700,
+                            ),
                           ),
                         ],
                       ),
@@ -149,13 +151,14 @@ class _CommentSectionState extends State<CommentSection> {
                 decoration: InputDecoration(
                   hintText: 'Write a comment…',
                   filled: true,
-                  fillColor: SocialUi.feedCanvas,
+                  fillColor: AppColors.slate50,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius:
+                        BorderRadius.circular(SocialUi.searchRadius),
                     borderSide: BorderSide.none,
                   ),
                 ),

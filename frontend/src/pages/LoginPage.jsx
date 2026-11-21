@@ -3,10 +3,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import { LogIn, Globe, ShieldCheck, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react';
+import { LogIn, ShieldCheck, Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { apiPost } from '../lib/api';
 import { LoadingImage } from '../components/ui/LoadingImage';
+import { BrandGemIcon } from '../components/ui/BrandGemIcon';
 import { Seo } from '../components/seo/Seo';
 import { PAGE_SEO } from '../lib/seo';
 
@@ -147,12 +148,12 @@ export const LoginPage = () => {
                initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
                animate={{ scale: 1, opacity: 1, rotate: step === 'options' ? 3 : 0 }}
                exit={{ scale: 0.8, opacity: 0 }}
-               className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mb-6"
+               className="w-20 h-20 bg-white border border-slate-200 rounded-[18px] flex items-center justify-center text-primary mb-6"
              >
-                {step === 'options' && <Globe size={40} />}
-                {step === 'email' && <Mail size={40} />}
-                {step === 'phone' && <Phone size={40} />}
-                {(step === 'otp' || step === 'emailOtp') && <ShieldCheck size={40} />}
+                {step === 'options' && <BrandGemIcon size={30} />}
+                {step === 'email' && <Mail size={30} />}
+                {step === 'phone' && <Phone size={30} />}
+                {(step === 'otp' || step === 'emailOtp') && <ShieldCheck size={30} />}
              </motion.div>
            </AnimatePresence>
            

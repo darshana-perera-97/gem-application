@@ -7,7 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/social_ui.dart';
 
-/// Modern bottom tabs with a raised center “List” action.
+/// Minimal bottom tabs with a solid center “List” action.
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({super.key});
 
@@ -25,16 +25,9 @@ class AppBottomNav extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          border: const Border(top: BorderSide(color: SocialUi.hairline)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
-          ],
+          border: Border(top: BorderSide(color: SocialUi.hairline)),
         ),
         padding: EdgeInsets.only(bottom: bottomInset),
         child: SizedBox(
@@ -103,28 +96,14 @@ class _ListFab extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppColors.primary, AppColors.accent],
-                ),
-                shape: BoxShape.circle,
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(14),
                 boxShadow: SocialUi.primaryShadow,
               ),
-              child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'List',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                height: 1.1,
-                color: AppColors.primary,
-              ),
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
             ),
           ],
         ),
@@ -159,23 +138,17 @@ class _TabItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
+            AnimatedScale(
+              scale: active ? 1.05 : 1.0,
+              duration: const Duration(milliseconds: 160),
               curve: Curves.easeOut,
-              width: active ? 22 : 0,
-              height: 3,
-              margin: const EdgeInsets.only(bottom: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(999),
+              child: Icon(
+                active ? activeIcon : icon,
+                size: 24,
+                color: color,
               ),
             ),
-            Icon(
-              active ? activeIcon : icon,
-              size: 22,
-              color: color,
-            ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               label,
               maxLines: 1,
@@ -183,7 +156,8 @@ class _TabItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 height: 1.1,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                letterSpacing: -0.1,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
                 color: color,
               ),
             ),

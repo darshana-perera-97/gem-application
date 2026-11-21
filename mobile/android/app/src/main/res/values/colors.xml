@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches AppColors.background (#F5F7FA) for seamless native → Flutter splash. -->
+    <color name="splash_background">#F5F7FA</color>
+    <color name="splash_primary">#CC10FE</color>
+</resources>

@@ -8,7 +8,10 @@ import 'providers/auth_provider.dart';
 import 'router/app_router.dart';
 import 'services/api_client.dart';
 import 'theme/app_theme.dart';
-import 'widgets/ui/screen_loader.dart';
+import 'widgets/ui/splash_screen.dart';
+
+/// Minimum time the branded splash stays visible so it never flashes away.
+const _kSplashMinDuration = Duration(milliseconds: 2400);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +34,7 @@ class _GemBookAppState extends State<GemBookApp> {
   late final GoRouter _router =
       createAppRouter(navigatorKey: _navigatorKey);
   bool _ready = false;
+  bool _showSplash = true;
 
   @override
   void initState() {
@@ -43,9 +47,23 @@ class _GemBookAppState extends State<GemBookApp> {
     _activity.onNeedLogin = goLogin;
     _addListing.onNeedLogin = goLogin;
 
-    _auth.init().whenComplete(() {
-      if (mounted) setState(() => _ready = true);
-    });
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final started = DateTime.now();
+    await _auth.init();
+    final elapsed = DateTime.now().difference(started);
+    final remaining = _kSplashMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+    if (!mounted) return;
+    setState(() => _ready = true);
+    // Brief delay so the fade-out of splash feels intentional.
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    if (!mounted) return;
+    setState(() => _showSplash = false);
   }
 
   @override
@@ -70,8 +88,22 @@ class _GemBookAppState extends State<GemBookApp> {
         theme: buildAppTheme(),
         routerConfig: _router,
         builder: (context, child) {
-          if (!_ready) return const ScreenLoader();
-          return child ?? const SizedBox.shrink();
+          final app = child ?? const SizedBox.shrink();
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_ready) app,
+              IgnorePointer(
+                ignoring: !_showSplash,
+                child: AnimatedOpacity(
+                  opacity: _showSplash ? 1 : 0,
+                  duration: const Duration(milliseconds: 420),
+                  curve: Curves.easeOutCubic,
+                  child: const SplashScreen(),
+                ),
+              ),
+            ],
+          );
         },
       ),
     );

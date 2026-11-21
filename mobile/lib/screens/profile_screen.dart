@@ -28,14 +28,14 @@ class ProfileScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 72,
-                    height: 72,
+                    width: 68,
+                    height: 68,
                     decoration: BoxDecoration(
                       color: AppColors.primarySoft,
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(Icons.person_outline_rounded,
-                        size: 36, color: AppColors.primary),
+                        size: 32, color: AppColors.primary),
                   ),
                   const SizedBox(height: SocialUi.sectionGap),
                   Text('Your account', style: SocialUi.pageTitleStyle),
@@ -230,12 +230,14 @@ class _SettingsPanelState extends State<_SettingsPanel> {
                 final controller = TextEditingController();
                 return AlertDialog(
                   title: const Text('Delete account'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Type DELETE to confirm.'),
-                      TextField(controller: controller),
-                    ],
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Type DELETE to confirm.'),
+                        TextField(controller: controller),
+                      ],
+                    ),
                   ),
                   actions: [
                     TextButton(

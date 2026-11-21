@@ -5,7 +5,9 @@ import { cn } from '../../lib/utils';
 import { CommentSection } from './CommentSection';
 import { resolveAvatar, resolveGem, resolvePostMedia } from '../../constants/sampleImages';
 import { useActivity } from '../../contexts/ActivityContext';
+import { postShareUrl } from '../../lib/shareItem';
 import { LoadingImage } from '../ui/LoadingImage';
+import { ShareSheet } from '../ui/ShareSheet';
 
 export const PostCard = ({ post }) => {
   const media = resolvePostMedia(post.media);
@@ -14,7 +16,9 @@ export const PostCard = ({ post }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likesCount || 0);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0);
+  const [shareOpen, setShareOpen] = useState(false);
   const isFollowing = follows.some((row) => row.targetId === post.authorId && row.targetType === 'user');
+  const shareTitle = (post.content || 'GemBook post').trim().slice(0, 120);
 
   useEffect(() => {
     setIsLiked(likes.includes(post.id));
@@ -45,26 +49,17 @@ export const PostCard = ({ post }) => {
     }
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Post by ${post.authorName} | Ceylon Gem Book`,
-          text: post.content,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log('Error sharing:', err);
-      }
-    } else {
-      // Fallback
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    }
-  };
+  const handleShare = () => setShareOpen(true);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-4 hover:border-slate-300 transition-all">
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={shareTitle || 'GemBook post'}
+        url={postShareUrl(post.id)}
+        message={shareTitle || 'Check out this post on GemBook'}
+      />
       <div className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
